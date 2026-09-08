@@ -203,7 +203,7 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "Gigas_Sec_2026_x99"
-$Version = "v6.9.7"
+$Version = "v6.9.8"
 # ---------------------------------------------------------------------
 # AUDITORÍA LOCAL DUAL (CARPETA PÚBLICA + ACCESO DIRECTO EN C:\)
 # ---------------------------------------------------------------------
