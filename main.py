@@ -203,7 +203,71 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "Gigas_Sec_2026_x99"
-$Version = "v6.9.6"
+$Version = "v6.9.7"
+# ---------------------------------------------------------------------
+# AUDITORÍA LOCAL DUAL (TXT INMUTABLE + VISOR DE EVENTOS)
+# ---------------------------------------------------------------------
+$LogFolder = "C:\GigasMDM_Audit"
+$LogFile = "$LogFolder\GigasMDM_Audit.txt"
+
+# Crear carpeta y aplicar permisos inmutables (SYSTEM/Admins: Control Total | Usuarios: Solo Lectura)
+if (-not (Test-Path $LogFolder)) {
+    New-Item -Path $LogFolder -ItemType Directory | Out-Null
+    
+    $Acl = Get-Acl $LogFolder
+    $Acl.SetAccessRuleProtection($true, $false)
+    
+    $SystemRule = New-Object System.Security.AccessControl.FileSystemAccessRule("NT AUTHORITY\SYSTEM", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $AdminRule  = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $UserRule   = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Users", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
+    
+    $Acl.AddAccessRule($SystemRule)
+    $Acl.AddAccessRule($AdminRule)
+    $Acl.AddAccessRule($UserRule)
+    Set-Acl -Path $LogFolder -AclObject $Acl
+}
+
+# Registrar origen en Visor de Eventos de Windows si no existe
+if (-not [System.Diagnostics.EventLog]::SourceExists("GigasMDM")) {
+    try { New-EventLog -LogName "Application" -Source "GigasMDM" -ErrorAction SilentlyContinue } catch {}
+}
+
+# Función principal de auditoría
+function Write-MDMAuditLog {
+    param (
+        [string]$Accion,
+        [string]$Detalles,
+        [int]$EventID = 1000
+    )
+    $TimeStamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $LogEntry = "[$TimeStamp] [ACCION: $Accion] - $Detalles"
+    
+    # 1. Escribir en TXT local
+    Add-Content -Path $LogFile -Value $LogEntry -ErrorAction SilentlyContinue
+    
+    # 2. Escribir en Event Viewer
+    try {
+        Write-EventLog -LogName "Application" -Source "GigasMDM" -EntryType Information -EventId $EventID -Message $LogEntry -ErrorAction SilentlyContinue
+    } catch {}
+}
+
+# Crear acceso directo en el Escritorio Público si no existe
+$PublicDesktop = [System.IO.Path]::Combine($env:Public, "Desktop")
+$ShortcutPath = "$PublicDesktop\Auditoría GigasMDM.lnk"
+
+if (-not (Test-Path $ShortcutPath)) {
+    try {
+        $WScriptShell = New-Object -ComObject WScript.Shell
+        $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
+        $Shortcut.TargetPath = "notepad.exe"
+        $Shortcut.Arguments = $LogFile
+        $Shortcut.IconLocation = "notepad.exe,0"
+        $Shortcut.Save()
+    } catch {}
+}
+
+# Primer registro de inicio del agente
+Write-MDMAuditLog -Accion "Inicio de Agente" -Detalles "El agente GigasMDM $Version se ha iniciado correctamente." -EventID 1000
 
 $AgentDir = "C:\ProgramData\GigasMDM"
 $AgentPath = "C:\ProgramData\GigasMDM\microagente.ps1"
