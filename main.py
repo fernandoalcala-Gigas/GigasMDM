@@ -726,19 +726,24 @@ def linux_heartbeat():
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    # Extraer la IP pública real si viene vacía o 'N/D'
+    ip_conexion_proxy = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    ip_publica_agente = data.get('ip_publica', 'N/D')
+    ip_publica_final = ip_conexion_proxy if (not ip_publica_agente or ip_publica_agente == 'N/D') else ip_publica_agente
+
     conn = get_db_connection()
     c = conn.cursor()
     
     try:
-        # Insertamos TODOS los campos para no romper la tabla de MariaDB ni el frontend
         c.execute('''
             INSERT INTO agents (
-                hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, software, kbs, agente, ultima_conexion, uptime
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, software, kbs, agente, ultima_conexion, uptime, ubicacion
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 usuario=VALUES(usuario), os=VALUES(os), 
                 ip_local=VALUES(ip_local), ip_publica=VALUES(ip_publica), 
-                agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion)
+                agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion),
+                ubicacion=VALUES(ubicacion)
         ''', (
             hostname, 
             data.get('username', 'N/D'), 
@@ -747,7 +752,7 @@ def linux_heartbeat():
             'N/D',                    # ram
             'N/D',                    # disco
             data.get('ip_local', 'N/D'),
-            data.get('ip_publica', 'N/D'), 
+            ip_publica_final, 
             'N/D',                    # mac
             'N/D',                    # bitlocker
             'N/D',                    # antivirus
@@ -755,20 +760,18 @@ def linux_heartbeat():
             '',                       # kbs
             data.get('version', 'N/D'), 
             now,
-            'N/D'                     # uptime
+            'N/D',                    # uptime
+            data.get('ubicacion', 'Desconocida') # campo de ubicación
         ))
         
-        conn.commit() # Forzamos el guardado de los datos
+        conn.commit()
         
     except Exception as e:
         conn.close()
-        # Si hay un error en base de datos, ahora lo veremos en la consola o el log de Flask
-        print(f"Error insertando Linux: {e}")
         return jsonify({"error": "DB insert failed", "details": str(e)}), 500
 
     conn.close()
-    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado en MariaDB"})
-
+    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=8443, debug=True)
