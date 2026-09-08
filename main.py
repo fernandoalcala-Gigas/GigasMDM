@@ -710,6 +710,49 @@ def get_os_stats():
     rows = c.fetchall()
     conn.close()
     return jsonify({row['os']: row['total'] for row in rows if row['os']})
+@app.route('/api/heartbeat', methods=['POST'])
+def linux_heartbeat():
+    token = request.headers.get('X-Auth-Token')
+    # Verificar token de seguridad (ajusta si usas otro)
+    if token != "Gigas_Sec_2026_x99":
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "Bad Request"}), 400
+
+    hostname = data.get('hostname')
+    if not hostname:
+        return jsonify({"error": "Missing hostname"}), 400
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Manejar campos específicos del agente Linux
+    conn = get_db_connection()
+    c = conn.cursor()
+    
+    # Insertamos o actualizamos los datos básicos del agente Linux.
+    # Los campos que Linux no envía (como disco, ram, software) se rellenarán con 'N/D' o vacíos por defecto.
+    c.execute('''
+        INSERT INTO agents (
+            hostname, usuario, os, ip_local, ip_publica, agente, ultima_conexion
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            usuario=VALUES(usuario), os=VALUES(os), 
+            ip_local=VALUES(ip_local), ip_publica=VALUES(ip_publica), 
+            agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion)
+    ''', (
+        hostname, 
+        data.get('username', 'N/D'), 
+        "Linux", # Forzamos el OS para identificarlo visualmente
+        data.get('ip_local', 'N/D'),
+        data.get('ip_publica', 'N/D'), 
+        data.get('version', 'N/D'), 
+        now
+    ))
+    
+    conn.close()
+    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado"})
 
 if __name__ == '__main__':
     init_db()
