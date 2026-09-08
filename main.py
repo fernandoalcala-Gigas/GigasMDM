@@ -193,7 +193,7 @@ def register_audit_action(hw_token, admin_email, action, status, details=""):
             conn.close()
 
 # =================================================================
-# SCRIPT DE POWERSHELL INCRUSTADO (v6.9.5 - DOUBLE TRIGGER + AUTOSTART)
+# SCRIPT DE POWERSHELL INCRUSTADO (DOUBLE TRIGGER + AUTOSTART)
 # =================================================================
 AGENT_CODE = r"""param([switch]$Once)
 
