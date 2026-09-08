@@ -713,7 +713,6 @@ def get_os_stats():
 @app.route('/api/heartbeat', methods=['POST'])
 def linux_heartbeat():
     token = request.headers.get('X-Auth-Token')
-    # Verificar token de seguridad (ajusta si usas otro)
     if token != "Gigas_Sec_2026_x99":
         return jsonify({"error": "Unauthorized"}), 401
     
@@ -727,32 +726,48 @@ def linux_heartbeat():
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Manejar campos específicos del agente Linux
     conn = get_db_connection()
     c = conn.cursor()
     
-    # Insertamos o actualizamos los datos básicos del agente Linux.
-    # Los campos que Linux no envía (como disco, ram, software) se rellenarán con 'N/D' o vacíos por defecto.
-    c.execute('''
-        INSERT INTO agents (
-            hostname, usuario, os, ip_local, ip_publica, agente, ultima_conexion
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            usuario=VALUES(usuario), os=VALUES(os), 
-            ip_local=VALUES(ip_local), ip_publica=VALUES(ip_publica), 
-            agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion)
-    ''', (
-        hostname, 
-        data.get('username', 'N/D'), 
-        "Linux", # Forzamos el OS para identificarlo visualmente
-        data.get('ip_local', 'N/D'),
-        data.get('ip_publica', 'N/D'), 
-        data.get('version', 'N/D'), 
-        now
-    ))
-    
+    try:
+        # Insertamos TODOS los campos para no romper la tabla de MariaDB ni el frontend
+        c.execute('''
+            INSERT INTO agents (
+                hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, software, kbs, agente, ultima_conexion, uptime
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                usuario=VALUES(usuario), os=VALUES(os), 
+                ip_local=VALUES(ip_local), ip_publica=VALUES(ip_publica), 
+                agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion)
+        ''', (
+            hostname, 
+            data.get('username', 'N/D'), 
+            'N/D',                    # serial
+            "Linux",                  # os
+            'N/D',                    # ram
+            'N/D',                    # disco
+            data.get('ip_local', 'N/D'),
+            data.get('ip_publica', 'N/D'), 
+            'N/D',                    # mac
+            'N/D',                    # bitlocker
+            'N/D',                    # antivirus
+            '',                       # software
+            '',                       # kbs
+            data.get('version', 'N/D'), 
+            now,
+            'N/D'                     # uptime
+        ))
+        
+        conn.commit() # Forzamos el guardado de los datos
+        
+    except Exception as e:
+        conn.close()
+        # Si hay un error en base de datos, ahora lo veremos en la consola o el log de Flask
+        print(f"Error insertando Linux: {e}")
+        return jsonify({"error": "DB insert failed", "details": str(e)}), 500
+
     conn.close()
-    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado"})
+    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado en MariaDB"})
 
 if __name__ == '__main__':
     init_db()
