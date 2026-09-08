@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gigas Endpoint Manager v6.5 PRO</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --bg: #070d1e; 
+      --card: #0d1733; 
+      --card-inner: #091024;
+      --text: #e2e8f0; 
+      --accent: #3b82f6; 
+      --green: #10b981;
+      --red: #ef4444; 
+      --border: #1e293b; 
+      --subtext: #94a3b8;
+    }
+        
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      padding: 20px; 
+      margin: 0; 
+      height: 100vh; 
+      overflow: hidden; 
+      display: flex; 
+      flex-direction: column; 
+    }
+        
+    #login-container { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100%; 
+      flex-direction: column; 
+      background: var(--bg); 
+    }
+        
+    #login-container h2 { 
+      color: var(--text); 
+      margin-bottom: 20px; 
+      font-weight: normal; 
+    }
+
+    #panel-principal { 
+      flex: 1; 
+      flex-direction: column; 
+      overflow: hidden; 
+      height: 100%; 
+    }
+        
+    .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; }
+    .header-title { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: bold; color: #ffffff; }
+    .header-title span { color: var(--subtext); font-size: 13px; font-weight: normal; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+        
+    .select-lang { background: #0f172a; color: white; border: 1px solid var(--border); padding: 5px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .badge-sysadmin { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; border: 1px solid var(--green); }
+    .user-email { font-size: 13px; color: var(--subtext); }
+    .btn-header { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+    .btn-refresh { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+    .btn-install { background: #10b981; color: black; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+    .subtitle { color: var(--subtext); font-size: 13px; margin-bottom: 20px; }
+        
+    .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .search-box { width: 45%; padding: 10px 14px; background: #0b132b; color: white; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+    .action-container { background: #0b132b; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .action-label { font-size: 13px; font-weight: bold; color: #60a5fa; }
+    .action-select { padding: 6px; background: #070d1e; color: white; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+    .btn-execute { background: var(--green); color: black; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #091024; color: var(--subtext); text-transform: uppercase; font-size: 11px; padding: 12px 14px; text-align: left; box-shadow: inset 0 -1px 0 var(--border); position: sticky; top: 0; z-index: 10; }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    tr.main-row { cursor: pointer; }
+    tr.main-row:hover { background: rgba(255, 255, 255, 0.02); }
+        
+    .version-tag { background: #1e293b; color: #38bdf8; font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
+    .dot-online { height: 9px; width: 9px; background-color: var(--green); border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--green); }
+    .dot-offline { height: 9px; width: 9px; background-color: var(--red); border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--red); }
+    .btn-ficha { color: #38bdf8; font-weight: bold; font-size: 12px; }
+        
+    .detail-row { display: none; background: #050a17; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; padding: 15px; border-left: 3px solid var(--green); margin: 10px; background: #081026; border-radius: 4px; }
+    .detail-card { background: var(--card-inner); padding: 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .detail-card h4 { margin: 0 0 12px 0; color: #ffffff; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .detail-card p { margin: 6px 0; font-size: 12px; color: var(--text); }
+        
+    .bitlocker-box { background: #0284c7; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; margin: 8px 0; word-break: break-all; }
+    .btn-copy { background: #334155; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; margin-bottom: 10px; }
+    .software-list { max-height: 180px; overflow-y: auto; padding-left: 15px; margin: 0; list-style: none; }
+    .software-list li { font-size: 11px; color: #cbd5e1; margin-bottom: 4px; }
+    .kb-list { padding-left: 0; list-style: none; margin: 5px 0; }
+    .kb-list li { font-size: 12px; color: #38bdf8; margin-bottom: 3px; }
+        
+    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+    .modal-content { background: var(--card); margin: 10% auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; width: 450px; color: var(--text); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .close-modal { color: var(--subtext); font-size: 20px; cursor: pointer; }
+    .os-badge { background-color: var(--green); color: #000; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; }
+    .os-badge b { margin-left: 5px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <div id="login-container">
+    <h2>🔒 Acceso Corporativo MDM</h2>
+    <div id="g_id_onload" data-client_id="1045705036890-4lglh498lp4g0dnc4l2s0ejhv9jgph8d.apps.googleusercontent.com" data-callback="manejarLoginGoogle"></div>
+    <div class="g_id_signin" data-type="standard"></div>
+  </div>
+
+  <div id="panel-principal" style="display: none;">
+    <div style="flex-shrink: 0; padding-bottom: 10px;">
+      <div class="header-bar">
+        <div class="header-title">⚡ Gigas Endpoint Manager <span>v6.5 PRO</span></div>
+        <div class="header-right">
+          <select class="select-lang" id="lang-select" onchange="cambiarIdioma()">
+            <option value="es">ES ES</option>
+            <option value="en">EN EN</option>
+            <option value="pt">PT PT</option>
+          </select>
+          <span class="badge-sysadmin">⚡ ADMIN IT</span>
+          <span class="user-email" id="user-email-display">usuario@gigas.com</span>
+          <button class="btn-header" onclick="abrirGestionIT()">🌐 <span id="lbl-gestion-it">Gestión IT</span></button>
+          <button class="btn-header" style="background: #8b5cf6;" onclick="abrirAuditoria()" id="btn-auditoria">📜 Auditoría</button>
+          <button class="btn-refresh" onclick="cargarInventario()">🔄 <span id="lbl-refrescar">Refrescar</span></button>
+          <button class="btn-install" onclick="copiarComandoInstalacion()">⚡ Instalar agente g-mdm</button>
+        </div>
+      </div>
+
+      <div class="subtitle" id="lbl-subtitulo">Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.</div>
+      
+      <div class="controls-bar">
+        <input type="text" id="buscador" class="search-box" placeholder="🔍 Buscar por máquina, usuario, ubicación..." onkeyup="filtrarTabla()">
+        <div class="action-container">
+          <span class="action-label" id="lbl-accion-masiva">⚡ Acción Masiva:</span>
+          <select id="sel-global" class="action-select">
+            <option value="">-- Seleccionar Acción --</option>
+            
+            <!-- ACCIONES UNIVERSALES -->
+            <option value="SEND_MESSAGE" data-os="universal">💬 Enviar Mensaje en Pantalla</option>
+            <option value="REBOOT" data-os="universal">🔄 Reiniciar</option>
+            <option value="SHUTDOWN" data-os="universal">🔴 Apagar</option>
+            <option value="UPDATE_AGENT" data-os="universal">⚡ Actualizar Agente</option>
+            <option value="QUICK_ASSIST" data-os="universal">🤝 Asistencia Rápida</option>
+            <option value="CUSTOM_PS1" data-os="universal">💻 Comando / Script Personalizado</option>
+            
+            <!-- ACCIONES WINDOWS -->
+            <option value="CREATE_IT_USER" data-os="windows">👤 Crear Usuario IT (Local)</option>
+            <option value="DESTROY_IT_USER" data-os="windows">🗑️ Eliminar Usuario IT (AdminIT_Temp)</option>
+            <option value="ENABLE_RDP" data-os="windows">💻 Habilitar RDP</option>
+            <option value="DISABLE_RDP" data-os="windows">🔌 Deshabilitar RDP</option>
+            <option value="LOCK_SCREEN" data-os="windows">🔒 Bloquear Pantalla</option>
+            <option value="ENABLE_BITLOCKER" data-os="windows">🛡️ Activar BitLocker</option>
+            <option value="OS_PATCHES" data-os="windows">🛡️ Aplicar Parches OS (Windows Update)</option>
+            <option value="TEMP_ADMIN" data-os="windows">👑 Admin Temporal (2h)</option>
+            <option value="REVOKE_ADMIN" data-os="windows">🚫 Revocar Admin</option>
+            <option value="INSTALL_SW" data-os="windows">📦 Instalar Software (Winget)</option>
+            <option value="UNINSTALL_SW" data-os="windows">🗑️ Desinstalar Software</option>
+            <option value="WIPE" data-os="windows" style="color: #ef4444; font-weight: bold;">🚨 WIPE (Borrado Remoto)</option>
+            
+            <!-- ACCIONES LINUX / WSL -->
+            <option value="ENABLE_RDP" data-os="linux">🐧 Habilitar Servicio SSH (Puerto 22)</option>
+            <option value="DISABLE_RDP" data-os="linux">🔌 Deshabilitar Servicio SSH</option>
+            <option value="OS_PATCHES" data-os="linux">📦 Actualizar Sistema y Parches (APT)</option>
+            <option value="CREATE_IT_USER" data-os="linux">👤 Crear Usuario Local en Linux</option>
+            <option value="DESTROY_IT_USER" data-os="linux">🗑️ Eliminar Usuario Local en Linux</option>
+            <option value="TEMP_ADMIN" data-os="linux">👑 Otorgar Permisos Sudo</option>
+            <option value="REVOKE_ADMIN" data-os="linux">🚫 Revocar Permisos Sudo</option>
+            <option value="INSTALL_SW" data-os="linux">📦 Instalar Paquete (apt install)</option>
+            <option value="UNINSTALL_SW" data-os="linux">🗑️ Desinstalar Paquete (apt purge)</option>
+          </select>
+          <button class="btn-execute" onclick="enviarComandoLote()"><span id="lbl-ejecutar">🚀 Ejecutar</span></button>
+        </div>
+      </div>
+
+      <div style="font-size: 13px; display: flex; align-items: center;">
+          <span style="color: var(--subtext); margin-right: 15px;"><strong>Distribución OS:</strong></span>
+          <div id="osStatsList" style="display: flex; gap: 8px;"></div>
+      </div>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; background: var(--card); border-radius: 6px; border: 1px solid var(--border); margin-top: 15px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 3%; text-align: center;"><input type="checkbox" id="check-maestro" onclick="toggleTodosCbs(this)"></th>
+            <th style="width: 25%;" id="th-equipo">EQUIPO / HOSTNAME</th>
+            <th style="width: 22%;" id="th-usuario">USUARIO ASIGNADO</th>
+            <th style="width: 25%;" id="th-so">SISTEMA OPERATIVO</th>
+            <th style="width: 15%;" id="th-estado">ESTADO SECTOR</th>
+            <th style="width: 10%; text-align: right;" id="th-detalles">DETALLES</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-cuerpo">
+          <tr><td colspan="6" style="text-align: center; color: var(--subtext);">📡 Cargando datos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="modal-it" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 style="margin:0; color:#60a5fa;">🌐 Panel de Gestión IT</h3>
+          <span class="close-modal" onclick="cerrarGestionIT()">&times;</span>
+        </div>
+        <div style="margin-top:15px; font-size:13px; line-height:1.6;">
+          <p><b>Estado Servidor API:</b> <span style="color:var(--green)">Online (https://gmdm.gigas.com:8443)</span></p>
+          <p><b>Base de Datos:</b> MariaDB Centralizada</p>
+          <p><b>Validación de Sesión:</b> JWT Google OAuth 2.0</p>
+          <hr style="border:0; border-top:1px solid var(--border);">
+          <button class="btn-header" style="width:100%; margin-top:10px;" onclick="window.location.href='https://gmdm.gigas.com:8443/deploy'">📥 Descargar Instalador Seguro (PS1)</button>
+          
+          <div style="margin-top: 15px; background: #0b132b; padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="margin: 0 0 10px 0; color: #38bdf8;">📂 Subir Scripts PowerShell (.ps1)</h4>
+            <input type="file" id="input-scripts" multiple accept=".ps1" style="color: white; font-size: 12px; margin-bottom: 10px; width: 100%;">
+            <button class="btn-execute" style="width: 100%;" onclick="subirScripts()">⬆️ Subir Archivos al Servidor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-script" class="modal">
+      <div class="modal-content" style="width: 420px;">
+        <div class="modal-header">
+          <h3 style="margin:0; color:#38bdf8;">💻 Seleccionar Script PowerShell</h3>
+          <span class="close-modal" onclick="cerrarModalScript()">&times;</span>
+        </div>
+        <div style="margin-top:15px;">
+          <p style="font-size:12px; color:var(--subtext); margin-bottom:10px;">Selecciona el archivo <b>.ps1</b> alojado en el servidor que se ejecutará en las máquinas seleccionadas:</p>
+          <select id="sel-script-disponible" class="action-select" style="width:100%; padding:10px; font-size:13px; margin-bottom:15px;"></select>
+          <button class="btn-execute" style="width:100%; padding:10px;" onclick="confirmarEjecucionScript()">🚀 Lanzar Script en Lote</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-auditoria" class="modal">
+      <div class="modal-content" style="width: 85%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h3 style="margin:0; color:#8b5cf6;">📜 Historial de Auditoría de Comandos (RBAC)</h3>
+          <span class="close-modal" onclick="cerrarAuditoria()">&times;</span>
+        </div>
+        <div style="margin-top:15px; font-size:12px;">
+          <input type="text" id="filtroEquipo" onkeyup="filtrarLogs()" placeholder="Buscar por nombre de equipo afectado..." style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #1e1e2d; color: white; border: 1px solid #444; border-radius: 4px;">
+          <table style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 15%;">FECHA / HORA</th>
+                <th style="width: 25%;">ADMINISTRADOR</th>
+                <th style="width: 20%;">ACCIÓN</th>
+                <th style="width: 15%;">EQUIPO AFECTADO</th>
+                <th style="width: 25%;">DETALLES</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-auditoria-cuerpo">
+              <tr><td colspan="5" style="text-align: center;">Cargando registros inmutables...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://gmdm.gigas.com:8443";
+    let datosInventarioGlobal = [];
+    let tokenSesionGoogle = "";
+    let listaScriptsDisponibles = [];
+    let equiposSeleccionadosParaScript = [];
+
+    function manejarLoginGoogle(respuesta) {
+      tokenSesionGoogle = respuesta.credential;
+      const payloadBase64 = respuesta.credential.split('.')[1];
+      const decodedJson = JSON.parse(atob(payloadBase64));
+      const correoUsuario = decodedJson.email.toLowerCase();
+      
+      const adminsAutorizados = [
+        "fernando.alcala@gigas.com", "ricardo.pinhal@oni.pt",
+        "ignacio.garcia@gigas.com", "oscar.cadena@gigas.com",
+        "soporte@gigas.com", "pc.pruebas@gigas.com"
+      ];
+
+      if (adminsAutorizados.includes(correoUsuario)) {
+        document.getElementById('user-email-display').innerText = correoUsuario;
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('panel-principal').style.display = 'flex';
+        cargarInventario();
+      } else {
+        alert("⛔ Acceso denegado.\n\nLa cuenta " + correoUsuario + " no tiene permisos en el RBAC.");
+        window.location.reload();
+      }
+    }
+
+    const NOMBRES_ACCIONES = {
+      "SEND_MESSAGE": "Enviar Mensaje", "CREATE_IT_USER": "Crear Usuario IT",
+      "DESTROY_IT_USER": "Eliminar Usuario IT", "ENABLE_RDP": "Habilitar RDP/SSH",
+      "DISABLE_RDP": "Deshabilitar RDP/SSH", "LOCK_SCREEN": "Bloqueo de Pantalla",
+      "ENABLE_BITLOCKER": "Activar BitLocker", "REBOOT": "Reinicio del Sistema",
+      "SHUTDOWN": "Apagado del Sistema", "OS_PATCHES": "Actualización de Parches",
+      "UPDATE_AGENT": "Actualización de Agente", "TEMP_ADMIN": "Concesión Admin/Sudo Temporal",
+      "REVOKE_ADMIN": "Revocación Admin/Sudo", "INSTALL_SW": "Instalación de Software",
+      "UNINSTALL_SW": "Desinstalación de Software", "QUICK_ASSIST": "Asistencia Rápida",
+      "CUSTOM_PS1": "Ejecución de Comando Personalizado", "WIPE": "Borrado Remoto (WIPE)"
+    };
+
+    const i18n = {
+      es: { gestionIt: "Gestión IT", refrescar: "Refrescar", subtitulo: "Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.", accionMasiva: "⚡ Acción Masiva:", ejecutar: "🚀 Ejecutar", equipo: "EQUIPO / HOSTNAME", usuario: "USUARIO ASIGNADO", so: "SISTEMA OPERATIVO", estado: "ESTADO SECTOR", detalles: "DETALLES", buscar: "🔍 Buscar por máquina, usuario, ubicación..." },
+      en: { gestionIt: "IT Management", refrescar: "Refresh", subtitulo: "Click on any table row to <b>expand full technical sheet</b> of the device.", accionMasiva: "⚡ Mass Action:", ejecutar: "🚀 Execute", equipo: "DEVICE / HOSTNAME", usuario: "ASSIGNED USER", so: "OPERATING SYSTEM", estado: "SECTOR STATUS", detalles: "DETAILS", buscar: "🔍 Search by device, user, location..." },
+      pt: { gestionIt: "Gestão IT", refrescar: "Atualizar", subtitulo: "Clique em qualquer linha da tabela para <b>expandir a ficha técnica completa</b> do dispositivo.", accionMasiva: "⚡ Ação em Massa:", ejecutar: "🚀 Executar", equipo: "DISPOSITIVO / HOSTNAME", usuario: "USUÁRIO ATRIBUÍDO", so: "SISTEMA OPERACIONAL", estado: "STATUS SETOR", detalhes: "DETALHES", buscar: "🔍 Pesquisar por dispositivo, usuário, localização..." }
+    };
+
+    function cambiarIdioma() {
+      const lang = document.getElementById('lang-select').value;
+      const t = i18n[lang];
+      document.getElementById('lbl-gestion-it').innerText = t.gestionIt;
+      document.getElementById('lbl-refrescar').innerText = t.refrescar;
+      document.getElementById('lbl-subtitulo').innerHTML = t.subtitulo;
+      document.getElementById('lbl-accion-masiva').innerText = t.accionMasiva;
+      document.getElementById('lbl-ejecutar').innerText = t.ejecutar;
+      document.getElementById('th-equipo').innerText = t.equipo;
+      document.getElementById('th-usuario').innerText = t.usuario;
+      document.getElementById('th-so').innerText = t.so;
+      document.getElementById('th-estado').innerText = t.estado;
+      document.getElementById('th-detalles').innerText = t.detalles;
+      document.getElementById('buscador').placeholder = t.buscar;
+    }
+
+    function abrirGestionIT() { document.getElementById('modal-it').style.display = 'block'; }
+    function cerrarGestionIT() { document.getElementById('modal-it').style.display = 'none'; }
+        
+    function abrirAuditoria(hostnameSeleccionado = "") {
+      document.getElementById("modal-auditoria").style.display = "block";
+      if (!hostnameSeleccionado) {
+        const seleccionados = document.querySelectorAll('.cb-equipo:checked');
+        if (seleccionados.length === 1) hostnameSeleccionado = seleccionados[0].value;
+      }
+      var inputFiltro = document.getElementById("filtroEquipo");
+      if (inputFiltro) inputFiltro.value = hostnameSeleccionado;
+      cargarHistorialAuditoria();
+    }
+        
+    function cerrarAuditoria() { document.getElementById('modal-auditoria').style.display = 'none'; }
+
+    async function fetchOSStats() {
+      try {
+          const response = await fetch(`${API_URL}/api/stats/os`);
+          if (!response.ok) throw new Error('Fallo API OS');
+          const stats = await response.json();
+          const listElement = document.getElementById('osStatsList');
+          listElement.innerHTML = '';
+          for (const [os, count] of Object.entries(stats)) {
+              const badge = document.createElement('span');
+              badge.className = 'os-badge';
+              badge.innerHTML = `${os} <b>${count}</b>`;
+              listElement.appendChild(badge);
+          }
+      } catch (error) { console.error('Error cargando estadísticas de OS:', error); }
+    }
+
+    function cargarInventario() {
+      fetch(`${API_URL}/get_inventory?token=${tokenSesionGoogle}`)
+        .then(async res => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.msg || "Error del servidor");
+          return data;
+        })
+        .then(res => {
+          if (res.status === "ok") {
+            datosInventarioGlobal = res.data;
+            fetch(`${API_URL}/get_scripts?token=${tokenSesionGoogle}`)
+              .then(r => r.json())
+              .then(d => { if (d.status === "ok") listaScriptsDisponibles = d.scripts; })
+              .catch(() => {});
+
+            const cajaAcciones = document.querySelector('.action-container');
+            const badgeCabecera = document.querySelector('.badge-sysadmin');
+            const checkMaestro = document.getElementById('check-maestro');
+            const btnAuditoria = document.getElementById('btn-auditoria');
+
+            if (res.rol !== "ADMIN") {
+                cajaAcciones.style.display = 'none';
+               if (checkMaestro) checkMaestro.style.display = 'none';
+               if (btnAuditoria) btnAuditoria.style.display = 'none';
+               badgeCabecera.innerText = '🛡️ SOPORTE (Lectura)';
+               badgeCabecera.style.color = '#fbbf24';
+               badgeCabecera.style.borderColor = '#fbbf24';
+               badgeCabecera.style.background = 'rgba(251, 191, 36, 0.10)';
+            } else {
+                cajaAcciones.style.display = 'flex';
+               if (checkMaestro) checkMaestro.style.display = 'inline-block';
+               if (btnAuditoria) btnAuditoria.style.display = 'inline-block';
+               badgeCabecera.innerText = '⚡ ADMIN IT';
+               badgeCabecera.style.color = 'var(--green)';
+               badgeCabecera.style.borderColor = 'var(--green)';
+               badgeCabecera.style.background = 'rgba(16, 185, 129, 0.15)';
+            }
+            renderizarTabla(datosInventarioGlobal, res.rol);
+            fetchOSStats();
+           }
+        })
+        .catch(err => {
+          document.getElementById('tabla-cuerpo').innerHTML = `<tr><td colspan='6' style='text-align:center; color:var(--red); font-weight:bold;'>⛔ Acceso Bloqueado: ${err.message}</td></tr>`;
+        });
+    }
+
+    function limpiarSO(cadenaOS) {
+      if (!cadenaOS) return "Windows (Desconocido)";
+      return cadenaOS.replace("Microsoft ", "").replace(" x64", "").replace("10.0.", "Build ");
+    }
+
+    function formatearAntivirus(textoAV) {
+      if (!textoAV || textoAV === "N/D" || textoAV.includes("Sin Antivirus")) {
+        return `<div style="margin-top:4px;"><span style="color:var(--red); font-weight:bold;">🔴 Sin Antivirus Registrado</span></div>`;
+      }
+      const items = textoAV.split('||');
+      return items.map(av => {
+        if (av.includes("[Activo]")) {
+          const nombre = av.replace(" [Activo]", "");
+          return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span style="color:var(--green); font-weight:bold;">🟢 ${nombre}</span> 
+            <span style="background: rgba(16,185,129,0.15); color: var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--green); font-weight: bold;">ACTIVO</span>
+          </div>`;
+        } else if (av.includes("[Desactivado]")) {
+          const nombre = av.replace(" [Desactivado]", "");
+          return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span style="color:var(--red); font-weight:bold;">🔴 ${nombre}</span> 
+            <span style="background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--red); font-weight: bold;">DESACTIVADO</span>
+          </div>`;
+        } else {
+          return `<div style="margin: 4px 0;"><span style="color:var(--subtext);">${av}</span></div>`;
+        }
+      }).join('');
+    }
+
+    function formatearBitLocker(textoBL) {
+      if (!textoBL || textoBL.toLowerCase().includes("no") || textoBL.toLowerCase().includes("sin clave") || textoBL.toLowerCase().includes("desprotegido")) {
+        return `<span style="color:var(--red); font-weight:bold;">🔴 Desprotegido</span>`;
+      }
+      if (textoBL.includes("RESTRINGIDO")) {
+        return `<div style="background: rgba(255,255,255,0.03); border: 1px dashed #475569; padding: 10px; border-radius: 6px; margin-top: 8px; display: inline-block;"><div style="display:flex; align-items:center; gap:8px;"><span style="font-size:18px; filter: grayscale(100%);">🛡️</span><div><span style="color:#94a3b8; font-size:12px; font-weight:bold; letter-spacing:0.5px;">CLAVE OCULTA POR PRIVACIDAD</span><br><span style="color:#64748b; font-size:11px;">Se requiere escalado a SysAdmin para visualizarla.</span></div></div></div>`;
+      }
+      return `<span style="color:var(--green); font-weight:bold;">🟢 Cifrado Activo</span><br><div class="bitlocker-box">${textoBL}</div>`;
+    }
+
+    function renderizarTabla(datos, rol = "ADMIN") {
+      const tbody = document.getElementById('tabla-cuerpo');
+      tbody.innerHTML = "";
+            
+      if (!datos || datos.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No hay equipos registrados.</td></tr>";
+        return;
+      }
+            
+      const esAdmin = (rol === "ADMIN");
+            
+      datos.forEach((item, index) => {
+        const softList = item.software ? item.software.split('||') : [];
+        const kbList = item.kbs ? item.kbs.split('||') : [];
+        const soLimpio = limpiarSO(item.os);
+        const estado = obtenerEstadoConexion(item.ultima_conexion);
+        const controlCelda = esAdmin ? `<input type="checkbox" class="cb-equipo" value="${item.hostname}" data-os="${item.os}" onchange="filtrarComandosPorSO()">` : `<span style="color: #475569; font-size: 11px;">🔒</span>`;
+                
+        let uptimeText = item.uptime || 'N/D';
+        let uptimeColor = "var(--subtext)";
+        let uptimeIcon = "⏱️";
+        let alertBg = "";
+
+        const daysMatch = uptimeText.match(/(\d+)\s*días/);
+        if (daysMatch) {
+          const days = parseInt(daysMatch[1]);
+          if (days >= 30) {
+            uptimeColor = "var(--red)";
+            uptimeIcon = "⚠️";
+            alertBg = "background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--red); display: inline-block; margin-top: 4px;";
+          } else if (days >= 15) {
+            uptimeColor = "#fbbf24"; 
+          }
+        }
+        let formattedUptime = alertBg ? `<div style="${alertBg}"><span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span></div>` : `<span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = "main-row";
+        tr.onclick = () => toggleDetalle(index);
+        tr.innerHTML = `
+          <td style="text-align: center;" onclick="event.stopPropagation()">${controlCelda}</td>
+          <td><span class="${estado.dot}"></span> <b style="cursor:pointer; color:#38bdf8;" onclick="event.stopPropagation(); abrirAuditoria('${item.hostname}')" title="Ver historial de este equipo">${item.hostname}</b> <span class="version-tag">${item.agente || 'v6.5.5'}</span><br><small style="color:var(--subtext)">Última conn: ${item.ultima_conexion}</small></td>
+          <td><b>${item.usuario || 'Sin Sesión'}</b><br><small style="color:var(--subtext)">SN: ${item.serial || 'N/D'}</small></td>
+          <td><b>${soLimpio}</b></td>
+          <td><span style="color:${estado.color}; font-weight:bold;">${estado.text}</span></td>
+          <td style="text-align: right;"><span class="btn-ficha" id="btn-exp-${index}">▼ Ficha</span></td>
+        `;
+
+        const trDetail = document.createElement('tr');
+        trDetail.id = `detail-${index}`; 
+        trDetail.className = "detail-row";
+                
+        let softHtml = softList.length > 0 ? softList.map(s => {
+          const appLimpia = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const btnBorrar = esAdmin ? `<span style="cursor:pointer; margin-left:8px; opacity:0.8;" onclick="event.stopPropagation(); desinstalarProgramaDirecto('${item.hostname}', '${appLimpia}')" title="Desinstalar software de forma remota">🗑️</span>` : '';
+          return `<li style="display:flex; justify-content:space-between; align-items:center; padding: 2px 0;"><span>• ${s}</span>${btnBorrar}</li>`;
+        }).join('') : '<li>Sin datos de software</li>';
+
+        let kbHtml = kbList.length > 0 ? kbList.map(k => `<li>🔧 ${k}</li>`).join('') : '<li>Sin parches registrados</li>';
+                
+        trDetail.innerHTML = `
+          <td colspan="6">
+            <div class="detail-grid">
+              <div class="detail-card">
+                <h4>⚙️ Hardware & Red</h4>
+                <p><b>Memoria RAM:</b> ${item.ram || 'N/D'}</p>
+                <p><b>Almacenamiento:</b><br>${item.disco || 'N/D'}</p>
+                <p style="margin-top:10px;"><b>${uptimeIcon} Uptime:</b><br>${formattedUptime}</p>
+                <p style="margin-top:10px;"><b>🕹️ Red Local:</b><br><span style="color:#10b981">${item.ip_local || 'N/D'}</span> ( <span style="color:#38bdf8">${item.mac || 'N/D'}</span> )</p>
+                <p><b>🌐 IP Pública:</b><br><span style="color:#38bdf8">${item.ip_publica || 'N/D'}</span> 📍</p>
+              </div>
+              <div class="detail-card">
+                <h4>🛡️ Seguridad & Cifrado</h4>
+                <p><b>Antivirus / Protección:</b></p>
+                ${formatearAntivirus(item.antivirus)}
+                <p style="margin-top:12px;"><b>Estado BitLocker:</b></p>
+                ${formatearBitLocker(item.bitlocker)}
+                ${(esAdmin && item.bitlocker && !item.bitlocker.toLowerCase().includes("no") && !item.bitlocker.toLowerCase().includes("desprotegido") && !item.bitlocker.includes("RESTRINGIDO")) ? `<button class="btn-copy" onclick="copiarClave('${item.bitlocker}')">📋 Copiar Clave</button>` : ''}
+                <p style="margin-top:12px;"><b>KBs / Actualizaciones:</b></p>
+                <ul class="kb-list">${kbHtml}</ul>
+              </div>
+              <div class="detail-card">
+                <h4>📦 Software Instalado (${softList.length})</h4>
+                <ul class="software-list">${softHtml}</ul>
+              </div>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr); 
+        tbody.appendChild(trDetail);
+      });
+      filtrarComandosPorSO();
+    }
+
+    function toggleDetalle(index) {
+      const detailRow = document.getElementById(`detail-${index}`);
+      const btn = document.getElementById(`btn-exp-${index}`);
+      if (detailRow.style.display === "table-row") { 
+        detailRow.style.display = "none"; btn.innerHTML = "▼ Ficha"; 
+      } else { 
+        detailRow.style.display = "table-row"; btn.innerHTML = "▲ Ficha"; 
+      }
+    }
+
+    function copiarClave(texto) { navigator.clipboard.writeText(texto); alert("📋 Clave BitLocker copiada al portapapeles"); }
+
+    function filtrarTabla() {
+      const texto = document.getElementById('buscador').value.toLowerCase();
+      const filtrados = datosInventarioGlobal.filter(i =>
+        (i.hostname && i.hostname.toLowerCase().includes(texto)) ||
+        (i.usuario && i.usuario.toLowerCase().includes(texto)) ||
+        (i.serial && i.serial.toLowerCase().includes(texto)) ||
+        (i.ip_local && i.ip_local.toLowerCase().includes(texto)) ||
+        (i.ip_publica && i.ip_publica.toLowerCase().includes(texto))
+      );
+      renderizarTabla(filtrados);
+    }
+
+    function toggleTodosCbs(maestro) { 
+      document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = maestro.checked);
+      filtrarComandosPorSO();
+    }
+
+    function filtrarComandosPorSO() {
+      const seleccionados = document.querySelectorAll('.cb-equipo:checked');
+      const select = document.getElementById('sel-global');
+      if (!select) return;
+      const opciones = select.querySelectorAll('option');
+
+      if (seleccionados.length === 0) {
+        opciones.forEach(opt => opt.style.display = 'block');
+        return;
+      }
+
+      let tieneWindows = false;
+      let tieneLinux = false;
+
+      seleccionados.forEach(cb => {
+        const os = (cb.getAttribute('data-os') || '').toLowerCase();
+        if (os.includes('linux') || os.includes('ubuntu') || os.includes('wsl')) {
+          tieneLinux = true;
+        } else {
+          tieneWindows = true;
+        }
+      });
+
+      opciones.forEach(opt => {
+        const targetOS = opt.getAttribute('data-os');
+        if (!targetOS || targetOS === 'universal') {
+          opt.style.display = 'block';
+        } else if (tieneWindows && tieneLinux) {
+          opt.style.display = 'none';
+        } else if (tieneWindows && targetOS === 'windows') {
+          opt.style.display = 'block';
+        } else if (tieneLinux && targetOS === 'linux') {
+          opt.style.display = 'block';
+        } else {
+          opt.style.display = 'none';
+        }
+      });
+
+      if (select.selectedOptions.length > 0 && select.selectedOptions[0].style.display === 'none') {
+        select.value = '';
+      }
+    }
+
+    function pedirParametroAccion(accion) {
+      switch (accion) {
+        case "SEND_MESSAGE": return prompt("💬 Escribe el mensaje que se mostrará en pantalla al usuario:");
+        case "CREATE_IT_USER": return prompt("👤 Escribe el nombre del nuevo usuario local:");
+        case "TEMP_ADMIN": return prompt("👑 Escribe el usuario al que darás permisos de Administrador/Sudo:");
+        case "REVOKE_ADMIN": return prompt("🚫 Escribe el usuario al que quitarás permisos de Administrador/Sudo:");
+        case "INSTALL_SW": return prompt("📦 Escribe el ID/Nombre del paquete o app (Winget / APT):");
+        case "UNINSTALL_SW": return prompt("🗑️ Escribe el nombre del programa/paquete a desinstalar:");
+        case "QUICK_ASSIST": return prompt("🤝 Escribe el código de soporte de Asistencia Rápida:");
+        default: return "";
+      }
+    }
+
+    function abrirModalScript(seleccionados) {
+      equiposSeleccionadosParaScript = seleccionados;
+      const combo = document.getElementById("sel-script-disponible");
+      combo.innerHTML = "";
+      if (listaScriptsDisponibles.length === 0) {
+        combo.innerHTML = `<option value="">⛔ No hay scripts .ps1 subidos</option>`;
+      } else {
+        listaScriptsDisponibles.forEach(script => { combo.innerHTML += `<option value="${script}">📄 ${script}</option>`; });
+      }
+      document.getElementById("modal-script").style.display = "block";
+    }
+
+    function cerrarModalScript() { document.getElementById("modal-script").style.display = "none"; }
+
+    function confirmarEjecucionScript() {
+      const scriptElegido = document.getElementById("sel-script-disponible").value;
+      if (!scriptElegido) return alert("⚠️ No hay ningún script seleccionado");
+      cerrarModalScript();
+            
+      equiposSeleccionadosParaScript.forEach(hostname => {
+        fetch(API_URL + "/queue_command", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: "CUSTOM_PS1", parametro: scriptElegido })
+        })
+        .then(async res => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.msg || "Error del servidor");
+          return data;
+        })
+        .then(data => alert(`✅ Script '${scriptElegido}' encolado correctamente para ${hostname}`))
+        .catch(err => alert(`⛔ OPERACIÓN DENEGADA:\n\n${err.message}`));
+      });
+      document.getElementById("sel-global").value = "";
+      document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = false);
+      filtrarComandosPorSO();
+    }
+
+    function enviarComandoLote() {
+      let seleccionados = Array.from(document.querySelectorAll('.cb-equipo:checked')).map(cb => cb.value);
+      if (seleccionados.length === 0) return alert("⚠️ Selecciona al menos un equipo de la lista");
+            
+      let accion = document.getElementById("sel-global").value;
+      if (!accion) return alert("⚠️ Selecciona una acción del menú desplegable");
+      if (accion === "CUSTOM_PS1") { abrirModalScript(seleccionados); return; }
+            
+      let param = "";
+      const accionesConParametro = ["SEND_MESSAGE", "CREATE_IT_USER", "QUICK_ASSIST", "TEMP_ADMIN", "REVOKE_ADMIN", "INSTALL_SW", "UNINSTALL_SW"];
+      if (accionesConParametro.includes(accion)) {
+        param = pedirParametroAccion(accion);
+        if (param === null || param.trim() === "") return alert("⚠️ Operación cancelada. El parámetro es obligatorio.");
+      }
+      if (accion === "WIPE") {
+        if (!confirm("⚠️ ¡ATENCIÓN! Vas a solicitar el BORRADO REMOTO (WIPE) de los equipos seleccionados. ¿Confirmas esta acción crítica?")) return;
+      }
+            
+      const nombreHumano = NOMBRES_ACCIONES[accion] || accion;
+      seleccionados.forEach(hostname => {
+        fetch(API_URL + "/queue_command", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: accion, parametro: param })
+        })
+        .then(async res => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.msg || "Acceso denegado");
+          return data;
+        })
+        .then(data => { alert(`✅ Orden '${nombreHumano}' encolada correctamente para ${hostname}\n\n${data.msg || ''}`); })
+        .catch(err => { alert(`⛔ OPERACIÓN DENEGADA:\n\n${err.message}`); });
+      });
+            
+      document.getElementById("sel-global").value = "";
+      document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = false);
+      filtrarComandosPorSO();
+    }
+
+    function copiarComandoInstalacion() {
+      const comando = `curl.exe -k https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
+      const areaTexto = document.createElement("textarea");
+      areaTexto.value = comando; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
+      document.body.appendChild(areaTexto); areaTexto.select();
+      try {
+        const copiadoExitoso = document.execCommand("copy");
+        if (copiadoExitoso) { alert("¡Comando copiado al portapapeles!\n\nAbre PowerShell como Administrador en el PC cliente y pégalo."); }
+      } catch (err) { prompt("Copia manualmente:", comando); } finally { document.body.removeChild(areaTexto); }
+    }
+
+    function obtenerEstadoConexion(fechaUltimaConn) {
+      if (!fechaUltimaConn) return { dot: 'dot-offline', text: '🔴 Desconectado', color: 'var(--red)' };
+      const fechaAgente = new Date(fechaUltimaConn.replace(' ', 'T'));
+      const ahora = new Date();
+      const diffMinutos = (ahora - fechaAgente) / (1000 * 60);
+      if (diffMinutos > 10) { return { dot: 'dot-offline', text: '🔴 Apagado', color: 'var(--red)' }; }
+      return { dot: 'dot-online', text: '🟢 Conectado', color: 'var(--green)' };
+    }
+
+    function cargarHistorialAuditoria() {
+      const tbodyAuditoria = document.getElementById('tabla-auditoria-cuerpo');
+      tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b5cf6;">Consultando registro inmutable...</td></tr>`;
+      fetch(`${API_URL}/get_audit_logs?token=${tokenSesionGoogle}`)
+        .then(async res => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.msg || "Error de permisos");
+          return data;
+        })
+        .then(res => {
+          if (res.status === "ok" && res.data.length > 0) {
+            tbodyAuditoria.innerHTML = "";
+            res.data.forEach(log => {
+              const tr = document.createElement('tr');
+              const nombreAccion = NOMBRES_ACCIONES[log.accion] || log.accion; 
+              const colorAccion = log.accion === "WIPE" ? "color: #ef4444; font-weight:bold;" : "color: #38bdf8;";
+              tr.innerHTML = `
+                <td style="color: var(--subtext);">${log.fecha}</td>
+                <td><b>${log.admin}</b></td>
+                <td style="${colorAccion}">${nombreAccion}</td>
+                <td style="color: #cbd5e1;">${log.hw_token}</td>
+                <td style="color: var(--subtext);">${log.detalles || '-'}</td>
+              `;
+              tbodyAuditoria.appendChild(tr);
+            });
+            filtrarLogs();
+          } else {
+            tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center;">No hay registros de auditoría disponibles.</td></tr>`;
+          }
+        })
+        .catch(err => { tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--red); font-weight: bold;">⛔ ${err.message}</td></tr>`; });
+    }
+
+    function filtrarLogs() {
+      var input = document.getElementById("filtroEquipo");
+      if (!input) return;
+      var filter = input.value.toUpperCase();
+      var tbody = document.getElementById("tabla-auditoria-cuerpo");
+      if (!tbody) return;
+      var tr = tbody.getElementsByTagName("tr");
+      for (var i = 0; i < tr.length; i++) {
+        var td = tr[i].getElementsByTagName("td")[3];
+        if (td) {
+          var txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } else { tr[i].style.display = "none"; }
+        }   
+      }
+    }
+
+    function subirScripts() {
+      const input = document.getElementById('input-scripts');
+      if (input.files.length === 0) return alert("⚠️ Selecciona al menos un archivo .ps1");
+      const formData = new FormData();
+      formData.append("token", tokenSesionGoogle);
+      for (let i = 0; i < input.files.length; i++) {
+        if (!input.files[i].name.toLowerCase().endsWith('.ps1')) { return alert("⛔ OPERACIÓN ABORTADA: Solo se permiten archivos con extensión .ps1"); }
+        formData.append("scripts", input.files[i]);
+      }
+      fetch(API_URL + "/upload_scripts", { method: 'POST', body: formData })
+        .then(res => res.json().catch(() => ({})))
+        .then(data => {
+          if (data.status === "ok") {
+            alert(`✅ Éxito: ${data.msg}`); input.value = "";
+            fetch(`${API_URL}/get_scripts?token=${tokenSesionGoogle}`)
+              .then(r => r.json())
+              .then(d => { if (d.status === "ok") listaScriptsDisponibles = d.scripts; });
+          } else { alert(`⛔ Error: ${data.msg || "Error al subir archivos"}`); }
+        })
+        .catch(err => alert(`⛔ Error de conexión: ${err.message}`));
+    }
+
+    function desinstalarProgramaDirecto(hostname, nombreApp) {
+      if (!confirm(`⚠️ ¿Confirmas que deseas solicitar la desinstalación remota (silenciosa) de "${nombreApp}" en el equipo ${hostname}?`)) return;
+      fetch(API_URL + "/queue_command", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: "UNINSTALL_SW", parametro: nombreApp })
+      })
+      .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.msg || "Error del servidor");
+        return data;
+      })
+      .then(data => alert(`✅ Orden 'Desinstalación de Software' (${nombreApp}) encolada correctamente para ${hostname}`))
+      .catch(err => alert(`⛔ OPERACIÓN DENEGADA:\n\n${err.message}`));
+    }
+  </script>
+</body>
+</html>
