@@ -205,34 +205,55 @@ $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "Gigas_Sec_2026_x99"
 $Version = "v6.9.7"
 # ---------------------------------------------------------------------
-# AUDITORÍA LOCAL DUAL (TXT INMUTABLE + VISOR DE EVENTOS)
+# AUDITORÍA LOCAL DUAL (CARPETA PÚBLICA + ACCESO DIRECTO EN C:\)
 # ---------------------------------------------------------------------
-$LogFolder = "C:\GigasMDM_Audit"
-$LogFile = "$LogFolder\GigasMDM_Audit.txt"
+$PublicFolder = "C:\Users\Public\GigasMDM_Audit"
+$LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
+$OldFolder    = "C:\GigasMDM_Audit"
+$SymlinkPath  = "C:\GigasMDM_Audit"
 
-# Crear carpeta y aplicar permisos inmutables (SYSTEM/Admins: Control Total | Usuarios: Solo Lectura)
-if (-not (Test-Path $LogFolder)) {
-    New-Item -Path $LogFolder -ItemType Directory | Out-Null
-    
-    $Acl = Get-Acl $LogFolder
+# 1. Limpieza de la carpeta antigua con permisos bloqueados en C:\
+if ((Test-Path $OldFolder) -and -not (Get-Item $OldFolder).Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
+    try { Remove-Item -Path $OldFolder -Recurse -Force -ErrorAction SilentlyContinue } catch {}
+}
+
+# 2. Crear carpeta física en ruta Pública si no existe
+if (-not (Test-Path $PublicFolder)) {
+    New-Item -Path $PublicFolder -ItemType Directory | Out-Null
+}
+
+# 3. Aplicar permisos inmutables en la carpeta pública (Lectura para Usuarios)
+try {
+    $Acl = Get-Acl $PublicFolder
     $Acl.SetAccessRuleProtection($true, $false)
     
     $SystemRule = New-Object System.Security.AccessControl.FileSystemAccessRule("NT AUTHORITY\SYSTEM", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $AdminRule  = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $UserRule   = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Users", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $UserRule   = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Usuarios", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
     
     $Acl.AddAccessRule($SystemRule)
     $Acl.AddAccessRule($AdminRule)
     $Acl.AddAccessRule($UserRule)
-    Set-Acl -Path $LogFolder -AclObject $Acl
+    Set-Acl -Path $PublicFolder -AclObject $Acl
+} catch {}
+
+# 4. Crear acceso directo en C:\ que parece una carpeta física y apunta a la pública
+if (-not (Test-Path $SymlinkPath)) {
+    try {
+        $WScriptShell = New-Object -ComObject WScript.Shell
+        $Shortcut = $WScriptShell.CreateShortcut("$SymlinkPath.lnk")
+        $Shortcut.TargetPath = $PublicFolder
+        $Shortcut.IconLocation = "%SystemRoot%\system32\shell32.dll,3" # Icono nativo de carpeta de Windows
+        $Shortcut.Save()
+    } catch {}
 }
 
-# Registrar origen en Visor de Eventos de Windows si no existe
+# 5. Registrar origen en Visor de Eventos si no existe
 if (-not [System.Diagnostics.EventLog]::SourceExists("GigasMDM")) {
     try { New-EventLog -LogName "Application" -Source "GigasMDM" -ErrorAction SilentlyContinue } catch {}
 }
 
-# Función principal de auditoría
+# 6. Función de escritura en el TXT inmutable y Visor de Eventos
 function Write-MDMAuditLog {
     param (
         [string]$Accion,
@@ -242,30 +263,15 @@ function Write-MDMAuditLog {
     $TimeStamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $LogEntry = "[$TimeStamp] [ACCION: $Accion] - $Detalles"
     
-    # 1. Escribir en TXT local
     Add-Content -Path $LogFile -Value $LogEntry -ErrorAction SilentlyContinue
     
-    # 2. Escribir en Event Viewer
     try {
         Write-EventLog -LogName "Application" -Source "GigasMDM" -EntryType Information -EventId $EventID -Message $LogEntry -ErrorAction SilentlyContinue
     } catch {}
 }
 
-# Crear acceso directo en el Escritorio Público si no existe
-$PublicDesktop = [System.IO.Path]::Combine($env:Public, "Desktop")
-$ShortcutPath = "$PublicDesktop\Auditoría GigasMDM.lnk"
-
-if (-not (Test-Path $ShortcutPath)) {
-    try {
-        $WScriptShell = New-Object -ComObject WScript.Shell
-        $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
-        $Shortcut.TargetPath = "notepad.exe"
-        $Shortcut.Arguments = $LogFile
-        $Shortcut.IconLocation = "notepad.exe,0"
-        $Shortcut.Save()
-    } catch {}
-}
-
+# Primer registro de arranque
+Write-MDMAuditLog -Accion "Inicio de Agente" -Detalles "El agente GigasMDM $Version se ha iniciado correctamente." -EventID 1000
 # Primer registro de inicio del agente
 Write-MDMAuditLog -Accion "Inicio de Agente" -Detalles "El agente GigasMDM $Version se ha iniciado correctamente." -EventID 1000
 
