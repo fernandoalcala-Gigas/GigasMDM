@@ -241,8 +241,8 @@ if (-not (Test-Path $LogFile)) {
 
 function Set-HardenedLogAcl {
     try {
-        icacls.exe "$PublicFolder" /inheritance:r /grant:r "NT AUTHORITY\SYSTEM:(OI)(CI)F" /grant:r "BUILTIN\Administrators:(OI)(CI)RX" /grant:r "BUILTIN\Usuarios:(OI)(CI)RX" /Q | Out-Null
-        icacls.exe "$LogFile" /inheritance:r /grant:r "NT AUTHORITY\SYSTEM:F" /grant:r "BUILTIN\Administrators:R" /grant:r "BUILTIN\Usuarios:R" /Q | Out-Null
+        icacls.exe "$PublicFolder" /inheritance:r /grant:r "*S-1-5-18:(OI)(CI)F" /grant:r "*S-1-5-32-544:(OI)(CI)RX" /grant:r "*S-1-5-32-545:(OI)(CI)RX" /Q | Out-Null
+        icacls.exe "$LogFile" /inheritance:r /grant:r "*S-1-5-18:F" /grant:r "*S-1-5-32-544:R" /grant:r "*S-1-5-32-545:R" /Q | Out-Null
     } catch {}
 }
 
