@@ -216,10 +216,11 @@ def register_audit_action(hw_token, admin_email, action, status, details=""):
 AGENT_CODE = r"""param([switch]$Once)
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
-$Version = "v6.9.9"
+$Version = "v6.9.10"
 
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
@@ -446,7 +447,7 @@ function Send-Sync {
                         Invoke-WebRequest -Uri "$ApiUrl/deploy" -OutFile $TmpFile -ErrorAction Stop
                         Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$TmpFile`" -Once" -Wait -WindowStyle Hidden
                         Remove-Item -Path $TmpFile -Force -ErrorAction SilentlyContinue
-                        $detalle_error = "Agente actualizado a v6.9.9 correctamente."
+                        $detalle_error = "Agente actualizado a v6.9.10 correctamente."
                     }
                     "REBOOT" {
                         Restart-Computer -Force
