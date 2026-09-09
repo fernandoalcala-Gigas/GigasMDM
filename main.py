@@ -748,7 +748,7 @@ def linux_heartbeat():
             hostname, 
             data.get('username', 'N/D'), 
             'N/D',                    # serial
-            "Linux",                  # os
+            data.get('os', 'Linux'),  # os
             'N/D',                    # ram
             'N/D',                    # disco
             data.get('ip_local', 'N/D'),
