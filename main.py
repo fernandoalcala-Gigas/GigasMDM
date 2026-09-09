@@ -5,26 +5,40 @@ import re
 from datetime import datetime
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import pymysql
 
+# Carga de variables de entorno para evitar credenciales hardcodeadas
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 app = Flask(__name__)
-CORS(app)
+
+# Configuración CORS estricta (configurable vía .env)
+ALLOWED_ORIGINS = os.getenv('CORS_ORIGINS', 'https://gmdm.gigas.com').split(',')
+CORS(app, origins=ALLOWED_ORIGINS)
 
 LINUX_AUDIT_LOG = "/var/log/gmdm_audit.log"
 SCRIPTS_DIR = "/opt/mdm_api/scripts"
 os.makedirs(SCRIPTS_DIR, exist_ok=True)
 
+# Credenciales y Tokens mediante variables de entorno
+AGENT_TOKEN = os.getenv('AGENT_TOKEN', 'Gigas_Sec_2026_x99')
+TEMP_ADMIN_PWD = os.getenv('TEMP_ADMIN_PWD', 'Temporal_2026!')
+
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'gmdm_user',
-    'password': 'UnaNuevaClave123!', 
-    'database': 'gmdm_db',
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'gmdm_user'),
+    'password': os.getenv('DB_PASS', 'UnaNuevaClave123!'), 
+    'database': os.getenv('DB_NAME', 'gmdm_db'),
     'autocommit': True,
     'cursorclass': pymysql.cursors.DictCursor,
     'charset': 'utf8mb4'
 }
 
-# Diccionario completo de mapeo para auditorÃ­a (Windows + Linux)
 NOMBRES_ACCIONES = {
     "SEND_MESSAGE": "Enviar Mensaje",
     "CREATE_IT_USER": "Crear Usuario Local",
@@ -35,14 +49,14 @@ NOMBRES_ACCIONES = {
     "ENABLE_BITLOCKER": "Activar BitLocker",
     "REBOOT": "Reinicio del Sistema",
     "SHUTDOWN": "Apagado del Sistema",
-    "OS_PATCHES": "ActualizaciÃ³n de Parches (OS/APT)",
-    "UPDATE_AGENT": "ActualizaciÃ³n de Agente",
-    "TEMP_ADMIN": "ConcesiÃ³n Admin / Sudo Temporal",
-    "REVOKE_ADMIN": "RevocaciÃ³n Admin / Sudo",
-    "INSTALL_SW": "InstalaciÃ³n de Software (Winget/APT)",
-    "UNINSTALL_SW": "DesinstalaciÃ³n de Software (Winget/APT)",
-    "QUICK_ASSIST": "Asistencia RÃ¡pida",
-    "CUSTOM_PS1": "EjecuciÃ³n de Script Personalizado",
+    "OS_PATCHES": "Actualización de Parches (OS/APT)",
+    "UPDATE_AGENT": "Actualización de Agente",
+    "TEMP_ADMIN": "Concesión Admin / Sudo Temporal",
+    "REVOKE_ADMIN": "Revocación Admin / Sudo",
+    "INSTALL_SW": "Instalación de Software (Winget/APT)",
+    "UNINSTALL_SW": "Desinstalación de Software (Winget/APT)",
+    "QUICK_ASSIST": "Asistencia Rápida",
+    "CUSTOM_PS1": "Ejecución de Script Personalizado",
     "WIPE": "Borrado Remoto (WIPE)"
 }
 
@@ -75,6 +89,9 @@ def init_db():
     except Exception: pass
 
     try: c.execute("ALTER TABLE agents ADD COLUMN uptime VARCHAR(100) DEFAULT 'N/D'")
+    except Exception: pass
+
+    try: c.execute("ALTER TABLE agents ADD COLUMN ubicacion VARCHAR(100) DEFAULT 'N/D'")
     except Exception: pass
 
     c.execute('''
@@ -197,12 +214,11 @@ def register_audit_action(hw_token, admin_email, action, status, details=""):
 # =================================================================
 AGENT_CODE = r"""param([switch]$Once)
 
-# Omite la validaciÃ³n SSL y fuerza TLS 1.2
+# Fuerza TLS 1.2, se elimina la evasión SSL para mayor seguridad
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
-$Token = "Gigas_Sec_2026_x99"
+$Token = "{{AGENT_TOKEN}}"
 $Version = "v6.9.8"
 # ---------------------------------------------------------------------
 # AUDITORÍA LOCAL DUAL (CARPETA PÚBLICA + ACCESO DIRECTO EN C:\)
@@ -270,9 +286,6 @@ function Write-MDMAuditLog {
     } catch {}
 }
 
-# Primer registro de arranque
-Write-MDMAuditLog -Accion "Inicio de Agente" -Detalles "El agente GigasMDM $Version se ha iniciado correctamente." -EventID 1000
-# Primer registro de inicio del agente
 Write-MDMAuditLog -Accion "Inicio de Agente" -Detalles "El agente GigasMDM $Version se ha iniciado correctamente." -EventID 1000
 
 $AgentDir = "C:\ProgramData\GigasMDM"
@@ -291,7 +304,7 @@ $RegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
 $RegName = "GigasMDMAgent"
 Remove-ItemProperty -Path $RegPath -Name $RegName -ErrorAction SilentlyContinue
 
-# --- CREACIÃ“N / ACTUALIZACIÃ“N DE TAREA PROGRAMADA ---
+# --- CREACIÓN / ACTUALIZACIÓN DE TAREA PROGRAMADA ---
 $TaskName = "GigasMDM_Service"
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$AgentPath`""
 $Trigger1 = New-ScheduledTaskTrigger -AtStartup
@@ -299,10 +312,8 @@ $Trigger2 = New-ScheduledTaskTrigger -AtLogOn
 $Principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd -ExecutionTimeLimit 0
 
-# Sobrescribe siempre la tarea para asegurar que hereda los nuevos triggers
 Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger @($Trigger1, $Trigger2) -Principal $Principal -Settings $Settings -Force | Out-Null
 
-# Auto-Arranque si no estÃ¡ corriendo tras instalar/actualizar
 if ((Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue).State -ne 'Running') {
     Start-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 }
@@ -330,30 +341,28 @@ function Get-Inventory {
         if ($owner) { $usuario = $owner }
     } catch {}
 
-    # 1. IP Local y MAC correctas (Solo captura el adaptador con salida a Internet)
     $netInfo = Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -eq "Up" } | Select-Object -First 1
     $ipLocal = if ($netInfo) { $netInfo.IPv4Address.IPAddress } else { "N/D" }
     $mac = if ($netInfo) { $netInfo.NetAdapter.MacAddress } else { "N/D" }
 
-    # 2. IP PÃºblica + GeolocalizaciÃ³n
     $ipPublica = "N/D"
     try {
-    $geo = Invoke-RestMethod -Uri "http://ip-api.com/json/" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
-    if ($geo.status -eq 'success') {
-        $ipPublica = "$($geo.query) - $($geo.city), $($geo.countryCode)"
-    } else {
-        throw "Error API"
+        $geo = Invoke-RestMethod -Uri "http://ip-api.com/json/" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+        if ($geo.status -eq 'success') {
+            $ipPublica = "$($geo.query) - $($geo.city), $($geo.countryCode)"
+        } else {
+            throw "Error API"
+        }
+    } catch {
+        try { $ipPublica = (Invoke-RestMethod -Uri 'https://api.ipify.org' -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop).Trim() } catch {}
     }
-} catch {
-    try { $ipPublica = (Invoke-RestMethod -Uri 'https://api.ipify.org' -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop).Trim() } catch {}
-}
    
     $bitlocker = "N/D"
     try {
         $blVol = Get-BitLockerVolume -MountPoint "C:" -ErrorAction SilentlyContinue
         if ($blVol -and $blVol.ProtectionStatus -eq "On") {
             $key = ($blVol.KeyProtector | Where-Object { $_.KeyProtectorType -eq "RecoveryPassword" } | Select-Object -First 1).RecoveryPassword
-            if ($key) { $bitlocker = $key } else { $bitlocker = "Cifrado (Sin clave extraÃ­ble)" }
+            if ($key) { $bitlocker = $key } else { $bitlocker = "Cifrado (Sin clave extraíble)" }
         } elseif ($blVol -and $blVol.ProtectionStatus -eq "Off") {
             $bitlocker = "Desprotegido"
         }
@@ -422,7 +431,7 @@ function Send-Callback {
     try {
         $bodyStr = @{ id = $cmd_id; estado = $estado; detalle = $detalle } | ConvertTo-Json
         $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($bodyStr)
-        Invoke-RestMethod -Uri "$ApiUrl/api/callback" -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -ErrorAction SilentlyContinue
+        Invoke-RestMethod -Uri "$ApiUrl/api/callback" -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -Headers @{"X-Auth-Token"=$Token} -ErrorAction SilentlyContinue
     } catch {}
 }
 
@@ -430,7 +439,7 @@ function Send-Sync {
     try {
         $bodyStr = Get-Inventory | ConvertTo-Json -Depth 5
         $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($bodyStr)
-        $response = Invoke-RestMethod -Uri "$ApiUrl/sync" -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -ErrorAction Stop
+        $response = Invoke-RestMethod -Uri "$ApiUrl/sync" -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -Headers @{"X-Auth-Token"=$Token} -ErrorAction Stop
         
         if ($response.status -eq "command") {
             $cmd_id = $response.id
@@ -462,7 +471,7 @@ function Send-Sync {
                         $detalle_error = "Mensaje enviado a la sesion activa."
                     }
                     "CREATE_IT_USER" {
-                        $pwd = ConvertTo-SecureString "Temporal_2026!" -AsPlainText -Force
+                        $pwd = ConvertTo-SecureString "{{TEMP_ADMIN_PWD}}" -AsPlainText -Force
                         New-LocalUser -Name "AdminIT_Temp" -Password $pwd -FullName "Admin IT" -Description "Usuario local temporal" -ErrorAction SilentlyContinue
                         Add-LocalGroupMember -Group "Administradores" -Member "AdminIT_Temp" -ErrorAction SilentlyContinue
                         Add-LocalGroupMember -Group "Administrators" -Member "AdminIT_Temp" -ErrorAction SilentlyContinue
@@ -557,13 +566,19 @@ if ($Once) { Send-Sync } else { while ($true) { Send-Sync; Start-Sleep -Seconds 
 @app.route('/deploy', methods=['GET'])
 @app.route('/agent_code', methods=['GET'])
 def deploy_agent():
-    response = make_response(AGENT_CODE)
+    # Inyección dinámica de configuraciones desde .env hacia el script PowerShell
+    agent_script = AGENT_CODE.replace('{{AGENT_TOKEN}}', AGENT_TOKEN).replace('{{TEMP_ADMIN_PWD}}', TEMP_ADMIN_PWD)
+    response = make_response(agent_script)
     response.headers["Content-Disposition"] = "attachment; filename=microagente.ps1"
     response.headers["Content-type"] = "text/plain"
     return response
 
 @app.route('/sync', methods=['POST'])
 def sync():
+    # Validación obligatoria de token para evitar inyecciones masivas
+    if request.headers.get('X-Auth-Token') != AGENT_TOKEN:
+        return jsonify({"status": "error", "msg": "Unauthorized"}), 401
+
     data = request.json
     hostname = data.get('hostname')
     if not hostname: return jsonify({"status": "error"}), 400
@@ -574,7 +589,6 @@ def sync():
     antivirus = data.get('antivirus', 'N/D')
     uptime = data.get('uptime', 'N/D')
 
-    # Extrae la IP pÃºblica real reenviada por Apache (X-Forwarded-For) si el agente reporta 'N/D'
     ip_conexion_proxy = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     ip_publica_agente = data.get('ip_publica', 'N/D')
     ip_publica_final = ip_conexion_proxy if (not ip_publica_agente or ip_publica_agente == 'N/D') else ip_publica_agente
@@ -611,6 +625,10 @@ def sync():
 
 @app.route('/api/callback', methods=['POST'])
 def command_callback():
+    # Validación obligatoria de token para devolución de estados de ejecución
+    if request.headers.get('X-Auth-Token') != AGENT_TOKEN:
+        return jsonify({"status": "error", "msg": "Unauthorized"}), 401
+
     data = request.json
     cmd_id = data.get('id')
     estado = data.get('estado')
@@ -687,9 +705,11 @@ def upload_scripts():
     archivos = request.files.getlist('scripts')
     for file in archivos:
         if file.filename.endswith('.ps1'):
-            filepath = os.path.join(SCRIPTS_DIR, file.filename)
+            # Neutralizado el vector de Path Traversal
+            safe_filename = secure_filename(file.filename)
+            filepath = os.path.join(SCRIPTS_DIR, safe_filename)
             file.save(filepath)
-            register_audit_action("SERVER", email, "UPLOAD_SCRIPT", "SUCCESS", file.filename)
+            register_audit_action("SERVER", email, "UPLOAD_SCRIPT", "SUCCESS", safe_filename)
 
     return jsonify({"status": "ok", "msg": "Scripts subidos."})
 
@@ -710,10 +730,11 @@ def get_os_stats():
     rows = c.fetchall()
     conn.close()
     return jsonify({row['os']: row['total'] for row in rows if row['os']})
+
 @app.route('/api/heartbeat', methods=['POST'])
 def linux_heartbeat():
     token = request.headers.get('X-Auth-Token')
-    if token != "Gigas_Sec_2026_x99":
+    if token != AGENT_TOKEN:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -726,7 +747,6 @@ def linux_heartbeat():
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Extraer la IP pública real si viene vacía o 'N/D'
     ip_conexion_proxy = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     ip_publica_agente = data.get('ip_publica', 'N/D')
     ip_publica_final = ip_conexion_proxy if (not ip_publica_agente or ip_publica_agente == 'N/D') else ip_publica_agente
@@ -747,21 +767,21 @@ def linux_heartbeat():
         ''', (
             hostname, 
             data.get('username', 'N/D'), 
-            'N/D',                    # serial
-            data.get('os', 'Linux'),  # os
-            'N/D',                    # ram
-            'N/D',                    # disco
+            'N/D',                    
+            data.get('os', 'Linux'),  
+            'N/D',                    
+            'N/D',                    
             data.get('ip_local', 'N/D'),
             ip_publica_final, 
-            'N/D',                    # mac
-            'N/D',                    # bitlocker
-            'N/D',                    # antivirus
-            '',                       # software
-            '',                       # kbs
+            'N/D',                    
+            'N/D',                    
+            'N/D',                    
+            '',                       
+            '',                       
             data.get('version', 'N/D'), 
             now,
-            'N/D',                    # uptime
-            data.get('ubicacion', 'Desconocida') # campo de ubicación
+            'N/D',                    
+            data.get('ubicacion', 'Desconocida')
         ))
         
         conn.commit()
@@ -772,6 +792,8 @@ def linux_heartbeat():
 
     conn.close()
     return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
+
 if __name__ == '__main__':
     init_db()
+    # Usar servidor asíncrono para producción más adelante
     app.run(host='0.0.0.0', port=8443, debug=True)
