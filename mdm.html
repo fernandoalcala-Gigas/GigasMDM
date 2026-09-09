@@ -704,7 +704,6 @@
     }
 
     function copiarComandoInstalacion() {
-      // Se elimina el parámetro -k para prevenir ataques de intermediario (Man-in-the-Middle)
       const comando = `curl.exe https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
       const areaTexto = document.createElement("textarea");
       areaTexto.value = comando; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
