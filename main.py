@@ -220,7 +220,7 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
-$Version = "v6.9.10"
+$Version = "v6.9.11"
 
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
@@ -240,13 +240,22 @@ try {
     $Acl.SetAccessRuleProtection($true, $false)
     
     $SystemRule = New-Object System.Security.AccessControl.FileSystemAccessRule("NT AUTHORITY\SYSTEM", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $AdminRule  = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $AdminRule  = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
     $UserRule   = New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Usuarios", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
     
     $Acl.AddAccessRule($SystemRule)
     $Acl.AddAccessRule($AdminRule)
     $Acl.AddAccessRule($UserRule)
     Set-Acl -Path $PublicFolder -AclObject $Acl
+
+    if (Test-Path $LogFile) {
+        $FileAcl = Get-Acl $LogFile
+        $FileAcl.SetAccessRuleProtection($true, $false)
+        $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("NT AUTHORITY\SYSTEM", "FullControl", "None", "None", "Allow")))
+        $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators", "ReadAndExecute", "None", "None", "Allow")))
+        $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Usuarios", "ReadAndExecute", "None", "None", "Allow")))
+        Set-Acl -Path $LogFile -AclObject $FileAcl
+    }
 } catch {}
 
 if (-not (Test-Path $SymlinkPath)) {
@@ -447,7 +456,7 @@ function Send-Sync {
                         Invoke-WebRequest -Uri "$ApiUrl/deploy" -OutFile $TmpFile -ErrorAction Stop
                         Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$TmpFile`" -Once" -Wait -WindowStyle Hidden
                         Remove-Item -Path $TmpFile -Force -ErrorAction SilentlyContinue
-                        $detalle_error = "Agente actualizado a v6.9.10 correctamente."
+                        $detalle_error = "Agente actualizado a v6.9.11 correctamente."
                     }
                     "REBOOT" {
                         Restart-Computer -Force
