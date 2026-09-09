@@ -651,6 +651,14 @@ def command_callback():
     conn = get_db_connection()
     c = conn.cursor()
     c.execute("UPDATE command_queue SET estado=%s, detalle_resultado=%s WHERE id=%s", (estado, detalle, cmd_id))
+    
+    c.execute("SELECT hostname, comando FROM command_queue WHERE id=%s", (cmd_id,))
+    cmd_info = c.fetchone()
+    
+    if cmd_info:
+        nombre_humano = NOMBRES_ACCIONES.get(cmd_info['comando'], cmd_info['comando'])
+        register_audit_action(cmd_info['hostname'], "SYSTEM (Agente)", cmd_info['comando'], estado, f"Resultado de {nombre_humano}: {detalle}")
+        
     conn.close()
     return jsonify({"status": "ok"})
 
