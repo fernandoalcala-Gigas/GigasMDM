@@ -64,7 +64,7 @@
     .user-email { font-size: 13px; color: var(--subtext); }
     .btn-header { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
     .btn-refresh { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
-    .btn-install { background: #10b981; color: black; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+    .btn-install { color: black; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
     .subtitle { color: var(--subtext); font-size: 13px; margin-bottom: 20px; }
         
     .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -129,7 +129,8 @@
           <button class="btn-header" onclick="abrirGestionIT()">🌐 <span id="lbl-gestion-it">Gestión IT</span></button>
           <button class="btn-header" style="background: #8b5cf6;" onclick="abrirAuditoria()" id="btn-auditoria">📜 Auditoría</button>
           <button class="btn-refresh" onclick="cargarInventario()">🔄 <span id="lbl-refrescar">Refrescar</span></button>
-          <button class="btn-install" onclick="copiarComandoInstalacion()">⚡ Instalar agente g-mdm</button>
+          <button class="btn-install" style="background: #38bdf8;" onclick="copiarComandoWindows()">⚡ Instalar Windows</button>
+          <button class="btn-install" style="background: #f59e0b;" onclick="copiarComandoLinux()">🐧 Instalar Linux</button>
         </div>
       </div>
 
@@ -703,15 +704,24 @@
       filtrarComandosPorSO();
     }
 
-    function copiarComandoInstalacion() {
-      const comando = `curl.exe https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
+    function copiarComandoWindows() {
+      const comando = `curl.exe -k https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
+      copiarAlPortapapeles(comando, "¡Comando Windows copiado!\n\nAbre PowerShell como Administrador en el PC y pégalo.");
+    }
+
+    function copiarComandoLinux() {
+      const comando = `curl -s -k https://gmdm.gigas.com:8443/deploy_linux | sudo bash`;
+      copiarAlPortapapeles(comando, "¡Comando Linux copiado!\n\nAbre la terminal del servidor Ubuntu/Debian y pégalo.");
+    }
+
+    function copiarAlPortapapeles(texto, mensajeExito) {
       const areaTexto = document.createElement("textarea");
-      areaTexto.value = comando; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
+      areaTexto.value = texto; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
       document.body.appendChild(areaTexto); areaTexto.select();
       try {
-        const copiadoExitoso = document.execCommand("copy");
-        if (copiadoExitoso) { alert("¡Comando copiado al portapapeles!\n\nAbre PowerShell como Administrador en el PC cliente y pégalo."); }
-      } catch (err) { prompt("Copia manualmente:", comando); } finally { document.body.removeChild(areaTexto); }
+        if (document.execCommand("copy")) alert(mensajeExito);
+      } catch (err) { prompt("Copia manualmente:", texto); }
+      finally { document.body.removeChild(areaTexto); }
     }
 
     function obtenerEstadoConexion(fechaUltimaConn) {
