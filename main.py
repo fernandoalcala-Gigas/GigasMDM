@@ -27,16 +27,13 @@ os.makedirs(SCRIPTS_DIR, exist_ok=True)
 AGENT_TOKEN = os.getenv('AGENT_TOKEN', 'Gigas_Sec_2026_x99')
 TEMP_ADMIN_PWD = os.getenv('TEMP_ADMIN_PWD', 'Temporal_2026!')
 
-# =================================================================
-# POOL DE CONEXIONES CENTRALIZADO (MARIADB)
-# =================================================================
 db_pool = PooledDB(
     creator=pymysql,
-    maxconnections=20,     # Máximo de conexiones concurrentes
-    mincached=5,          # Conexiones mínimas inactivas listas para usar
-    maxcached=10,         # Conexiones máximas inactivas
-    maxshared=0,          # Conexiones compartidas (0 = exclusivas por hilo)
-    blocking=True,        # Bloquear y esperar si el pool está lleno
+    maxconnections=20,     
+    mincached=5,          
+    maxcached=10,         
+    maxshared=0,          
+    blocking=True,        
     host=os.getenv('DB_HOST', 'localhost'),
     user=os.getenv('DB_USER', 'gmdm_user'),
     password=os.getenv('DB_PASS', 'UnaNuevaClave123!'),
@@ -222,7 +219,7 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
-$Version = "v6.9.8"
+$Version = "v6.9.9"
 
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
@@ -449,7 +446,7 @@ function Send-Sync {
                         Invoke-WebRequest -Uri "$ApiUrl/deploy" -OutFile $TmpFile -ErrorAction Stop
                         Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$TmpFile`" -Once" -Wait -WindowStyle Hidden
                         Remove-Item -Path $TmpFile -Force -ErrorAction SilentlyContinue
-                        $detalle_error = "Agente actualizado a v6.9.5 correctamente."
+                        $detalle_error = "Agente actualizado a v6.9.9 correctamente."
                     }
                     "REBOOT" {
                         Restart-Computer -Force
@@ -495,11 +492,13 @@ function Send-Sync {
                         $detalle_error = "Cifrado Bitlocker iniciado en disco C:."
                     }
                     "OS_PATCHES" {
-                        Start-Service wuauserv -ErrorAction SilentlyContinue
-                        usoclient StartScan
-                        usoclient StartDownload
-                        usoclient StartInstall
-                        $detalle_error = "Proceso de Windows Update (USOClient) disparado en segundo plano."
+                        if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+                            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue
+                            Install-Module PSWindowsUpdate -Force -AllowClobber -ErrorAction SilentlyContinue
+                        }
+                        Import-Module PSWindowsUpdate
+                        Install-WindowsUpdate -AcceptAll -IgnoreReboot
+                        $detalle_error = "Instalacion de parches mediante PSWindowsUpdate completada."
                     }
                     "TEMP_ADMIN" {
                         Add-LocalGroupMember -Group "Administradores" -Member $parametro -ErrorAction SilentlyContinue
@@ -512,18 +511,40 @@ function Send-Sync {
                         $detalle_error = "Privilegios revocados de la cuenta: $parametro"
                     }
                     "INSTALL_SW" {
-                        Start-Process "winget.exe" -ArgumentList "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent" -Wait -WindowStyle Hidden
-                        $detalle_error = "Orden de instalacion Winget enviada para: $parametro"
+                        $ActiveUser = (Get-CimInstance Win32_Process -Filter "Name='explorer.exe'" -ErrorAction SilentlyContinue | Invoke-CimMethod -MethodName GetOwner -ErrorAction SilentlyContinue | Select-Object -First 1).User
+                        if ($ActiveUser) {
+                            $TaskName = "Winget_Install_Temp"
+                            $TAction = New-ScheduledTaskAction -Execute "winget.exe" -Argument "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent"
+                            $TPrincipal = New-ScheduledTaskPrincipal -UserId $ActiveUser -RunLevel Highest
+                            Register-ScheduledTask -TaskName $TaskName -Action $TAction -Principal $TPrincipal -Force | Out-Null
+                            Start-ScheduledTask -TaskName $TaskName
+                            Start-Sleep -Seconds 10
+                            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+                            $detalle_error = "Orden Winget inyectada en sesion de usuario: $ActiveUser"
+                        } else {
+                            Start-Process "winget.exe" -ArgumentList "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent" -Wait -WindowStyle Hidden
+                            $detalle_error = "Orden Winget ejecutada como SYSTEM (usuario no detectado)."
+                        }
                     }
                     "UNINSTALL_SW" {
                         $cleanSearch = $parametro -replace '\s*\([^\)]*\)\s*$', ''
                         $app = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match [regex]::Escape($cleanSearch) } | Select-Object -First 1
                         if ($app -and $app.QuietUninstallString) {
                             Start-Process cmd.exe -ArgumentList "/c $($app.QuietUninstallString)" -Wait -WindowStyle Hidden
-                            $detalle_error = "Desinstalacion silenciosa lanzada."
+                            $detalle_error = "Desinstalacion silenciosa nativa lanzada."
+                        } elseif ($app -and $app.UninstallString -match 'msiexec') {
+                            $msiArgs = $app.UninstallString -replace '(?i)msiexec\.exe\s+', '' -replace '(?i)/I', '/X'
+                            Start-Process msiexec.exe -ArgumentList "$msiArgs /qn /norestart" -Wait -WindowStyle Hidden
+                            $detalle_error = "Desinstalacion MSI (msiexec /x) lanzada."
                         } else {
-                            $resultado = "FAILED"
-                            $detalle_error = "Cadena de desinstalacion silenciosa no encontrada."
+                            $wmiApp = Get-CimInstance Win32_Product | Where-Object { $_.Name -match [regex]::Escape($cleanSearch) } | Select-Object -First 1
+                            if ($wmiApp) {
+                                Invoke-CimMethod -InputObject $wmiApp -MethodName Uninstall
+                                $detalle_error = "Desinstalacion WMI (Win32_Product) lanzada."
+                            } else {
+                                $resultado = "FAILED"
+                                $detalle_error = "No se encontro cadena de desinstalacion silenciosa ni paquete instalador compatible."
+                            }
                         }
                     }
                     "QUICK_ASSIST" {
@@ -535,8 +556,8 @@ function Send-Sync {
                         $detalle_error = "Script ejecutado. Salida: $salida"
                     }
                     "WIPE" {
-                        Start-Process "systemreset.exe" -ArgumentList "-factoryreset" -Wait -WindowStyle Hidden
-                        $detalle_error = "PROCESO DE WIPE (RESTABLECIMIENTO DE FABRICA) INICIADO."
+                        Invoke-CimMethod -Namespace "root\cimv2\mdm\dmmap" -ClassName "MDM_RemoteWipe" -MethodName "doWipeMethod" -ErrorAction SilentlyContinue
+                        $detalle_error = "WIPE WMI INICIADO A NIVEL HARDWARE (MDM_RemoteWipe)."
                     }
                     Default {
                         $resultado = "FAILED"
@@ -782,7 +803,6 @@ def linux_heartbeat():
     conn.close()
     return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
 
-# Inicializar esquema de DB al importar
 init_db()
 
 if __name__ == '__main__':
