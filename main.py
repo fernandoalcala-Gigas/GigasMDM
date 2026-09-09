@@ -823,7 +823,7 @@ def linux_heartbeat():
 LINUX_AGENT_CODE = r"""import os, json, time, socket, urllib.request, ssl, subprocess
 API_URL = "https://gmdm.gigas.com:8443"
 TOKEN = "{{AGENT_TOKEN}}"
-VERSION = "v7.0.1-Linux"
+VERSION = "v7.0.2-Linux"
 ssl_ctx = ssl.create_default_context(); ssl_ctx.check_hostname = False; ssl_ctx.verify_mode = ssl.CERT_NONE
 
 def run_cmd(cmd):
@@ -833,6 +833,12 @@ def run_cmd(cmd):
     except Exception as e: return "", str(e), 1
 
 def get_inventory():
+    hostname = socket.gethostname()
+    try:
+        if "microsoft" in open("/proc/version").read().lower():
+            hostname += "-WSL"
+    except: pass
+
     os_name = "Linux"
     try:
         with open("/etc/os-release") as f:
@@ -853,7 +859,7 @@ def get_inventory():
     usuario = run_cmd("who | awk '{print $1}' | head -1")[0] or "root"
     sw_out, _, _ = run_cmd("dpkg-query -W -f='${Package} (${Version})||'")
     luks, _, _ = run_cmd("lsblk -f | grep crypto_LUKS")
-    return {"hostname": socket.gethostname(), "usuario": usuario, "os": os_name, "ram": ram, "disco": disco, "ip_local": ip_local, "ip_publica": "N/D", "mac": mac, "bitlocker": "🟢 Cifrado (LUKS)" if luks else "🔴 Desprotegido", "antivirus": "N/D", "software": sw_out.strip('||') if sw_out else "", "kbs": "", "agente": VERSION, "uptime": uptime}
+    return {"hostname": hostname, "usuario": usuario, "os": os_name, "ram": ram, "disco": disco, "ip_local": ip_local, "ip_publica": "N/D", "mac": mac, "bitlocker": "🟢 Cifrado (LUKS)" if luks else "🔴 Desprotegido", "antivirus": "N/D", "software": sw_out.strip('||') if sw_out else "", "kbs": "", "agente": VERSION, "uptime": uptime}
 
 def send_callback(cmd_id, estado, detalle):
     req = urllib.request.Request(f"{API_URL}/api/callback", data=json.dumps({"id": cmd_id, "estado": estado, "detalle": detalle}).encode('utf-8'), headers={'Content-Type': 'application/json', 'X-Auth-Token': TOKEN}, method='POST')
