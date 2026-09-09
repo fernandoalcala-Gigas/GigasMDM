@@ -3,18 +3,20 @@ import json
 import base64
 import re
 import logging
-logging.basicConfig(
-    filename='/opt/mdm_api/mdm_audit.log', 
-    level=logging.INFO, 
-    format='[%(asctime)s] - %(message)s', 
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 from datetime import datetime
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import pymysql
 from dbutils.pooled_db import PooledDB
+
+# Configuración del log físico del servidor
+logging.basicConfig(
+    filename='/opt/mdm_api/mdm_audit.log', 
+    level=logging.INFO, 
+    format='[%(asctime)s] - %(message)s', 
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 try:
     from dotenv import load_dotenv
@@ -27,7 +29,6 @@ app = Flask(__name__)
 ALLOWED_ORIGINS = os.getenv('CORS_ORIGINS', 'https://gmdm.gigas.com').split(',')
 CORS(app, origins=ALLOWED_ORIGINS)
 
-LINUX_AUDIT_LOG = "/var/log/gmdm_audit.log"
 SCRIPTS_DIR = "/opt/mdm_api/scripts"
 os.makedirs(SCRIPTS_DIR, exist_ok=True)
 
@@ -201,12 +202,14 @@ def validar_login_google(token):
 
 def register_audit_action(hw_token, admin_email, action, status, details=""):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_line = f"[{timestamp}] TOKEN: {hw_token} | ADMIN: {admin_email} | ACCION: {action} | ESTADO: {status} | DETALLES: {details}\n"
+    
+    # Escritura en el log fisico inmutable de Linux
     try:
-        with open(LINUX_AUDIT_LOG, "a") as f:
-            f.write(log_line)
-    except PermissionError:
-        pass 
+        logging.info(f"TOKEN: {hw_token} | ADMIN: {admin_email} | ACCION: {action} | ESTADO: {status} | DETALLES: {details}")
+    except Exception:
+        pass
+        
+    # Escritura en Base de Datos MariaDB
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -465,6 +468,9 @@ function Send-Sync {
             $comando = $response.comando
             $parametro = $response.parametro
             
+            # --- CORRECCION: ESCRITURA INMUTABLE LOCAL ANTES DE EJECUTAR LA ORDEN ---
+            Write-MDMAuditLog -Accion $comando -Detalles "Orden ejecutada desde el panel administrador. Parametro: $parametro"
+
             $resultado = "SUCCESS"
             $detalle_error = ""
 
@@ -990,7 +996,6 @@ def delete_agent():
 
     conn = get_db_connection()
     c = conn.cursor()
-    # Eliminar el equipo del inventario y de la cola de comandos pendientes
     c.execute("DELETE FROM agents WHERE hostname = %s", (hostname,))
     c.execute("DELETE FROM command_queue WHERE hostname = %s", (hostname,))
     conn.close()
