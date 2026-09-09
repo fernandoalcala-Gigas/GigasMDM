@@ -310,7 +310,7 @@
 
     const i18n = {
       es: { gestionIt: "Gestión IT", refrescar: "Refrescar", subtitulo: "Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.", accionMasiva: "⚡ Acción Masiva:", ejecutar: "🚀 Ejecutar", equipo: "EQUIPO / HOSTNAME", usuario: "USUARIO ASIGNADO", so: "SISTEMA OPERATIVO", estado: "ESTADO SECTOR", detalles: "DETALLES", buscar: "🔍 Buscar por máquina, usuario, ubicación..." },
-      en: { gestionIt: "IT Management", refrescar: "Refresh", subtitulo: "Click on any table row to <b>expand full technical sheet</b> of the device.", accionMasiva: "⚡ Mass Action:", ejecutar: "🚀 Execute", equipo: "DEVICE / HOSTNAME", usuario: "ASSIGNED USER", so: "OPERATING SYSTEM", estado: "SECTOR STATUS", detalles: "DETAILS", buscar: "🔍 Search by device, user, location..." },
+      en: { gestionIt: "IT Management", refrescar: "Refresh", subtitulo: "Click on any table row to <b>expand full technical sheet</b> of the device.", accionMasiva: "⚡ Mass Action:", ejecutar: "🚀 Execute", equipo: "DEVICE / HOSTNAME", usuario: "ASSIGNED USER", so: "OPERATING SYSTEM", estado: "SECTOR STATUS", detalhes: "DETAILS", buscar: "🔍 Search by device, user, location..." },
       pt: { gestionIt: "Gestão IT", refrescar: "Atualizar", subtitulo: "Clique em qualquer linha da tabela para <b>expandir a ficha técnica completa</b> do dispositivo.", accionMasiva: "⚡ Ação em Massa:", ejecutar: "🚀 Executar", equipo: "DISPOSITIVO / HOSTNAME", usuario: "USUÁRIO ATRIBUÍDO", so: "SISTEMA OPERACIONAL", estado: "STATUS SETOR", detalhes: "DETALHES", buscar: "🔍 Pesquisar por dispositivo, usuário, localização..." }
     };
 
@@ -704,7 +704,8 @@
     }
 
     function copiarComandoInstalacion() {
-      const comando = `curl.exe -k https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
+      // Se elimina el parámetro -k para prevenir ataques de intermediario (Man-in-the-Middle)
+      const comando = `curl.exe https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
       const areaTexto = document.createElement("textarea");
       areaTexto.value = comando; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
       document.body.appendChild(areaTexto); areaTexto.select();
