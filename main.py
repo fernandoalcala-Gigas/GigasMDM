@@ -220,7 +220,7 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
-$Version = "v6.9.12"
+$Version = "v6.9.13"
 
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
@@ -241,8 +241,29 @@ if (-not (Test-Path $LogFile)) {
 
 function Set-HardenedLogAcl {
     try {
-        icacls.exe "$PublicFolder" /inheritance:r /grant:r "*S-1-5-18:(OI)(CI)F" /grant:r "*S-1-5-32-544:(OI)(CI)RX" /grant:r "*S-1-5-32-545:(OI)(CI)RX" /Q | Out-Null
-        icacls.exe "$LogFile" /inheritance:r /grant:r "*S-1-5-18:F" /grant:r "*S-1-5-32-544:R" /grant:r "*S-1-5-32-545:R" /Q | Out-Null
+        $SidSystem = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-18")
+        $SidAdmins = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
+        $SidUsers  = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-545")
+
+        $FolderAcl = Get-Acl $PublicFolder
+        $FolderAcl.SetAccessRuleProtection($true, $false)
+        $FolderAcl.Access | ForEach-Object { $FolderAcl.RemoveAccessRule($_) } | Out-Null
+
+        $FolderAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidSystem, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")))
+        $FolderAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidAdmins, "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")))
+        $FolderAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidUsers, "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")))
+        Set-Acl -Path $PublicFolder -AclObject $FolderAcl
+
+        if (Test-Path $LogFile) {
+            $FileAcl = Get-Acl $LogFile
+            $FileAcl.SetAccessRuleProtection($true, $false)
+            $FileAcl.Access | ForEach-Object { $FileAcl.RemoveAccessRule($_) } | Out-Null
+
+            $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidSystem, "FullControl", "None", "None", "Allow")))
+            $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidAdmins, "ReadAndExecute", "None", "None", "Allow")))
+            $FileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($SidUsers, "ReadAndExecute", "None", "None", "Allow")))
+            Set-Acl -Path $LogFile -AclObject $FileAcl
+        }
     } catch {}
 }
 
@@ -447,7 +468,7 @@ function Send-Sync {
                         Invoke-WebRequest -Uri "$ApiUrl/deploy" -OutFile $TmpFile -ErrorAction Stop
                         Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$TmpFile`" -Once" -Wait -WindowStyle Hidden
                         Remove-Item -Path $TmpFile -Force -ErrorAction SilentlyContinue
-                        $detalle_error = "Agente actualizado a v6.9.12 correctamente."
+                        $detalle_error = "Agente actualizado a v6.9.13 correctamente."
                     }
                     "REBOOT" {
                         Restart-Computer -Force
@@ -581,7 +602,7 @@ if ($Once) { Send-Sync } else { while ($true) { Send-Sync; Start-Sleep -Seconds 
 LINUX_AGENT_CODE = r"""import os, json, time, socket, urllib.request, ssl, subprocess
 API_URL = "https://gmdm.gigas.com:8443"
 TOKEN = "{{AGENT_TOKEN}}"
-VERSION = "v7.0.2-Linux"
+VERSION = "v7.0.3-Linux"
 ssl_ctx = ssl.create_default_context(); ssl_ctx.check_hostname = False; ssl_ctx.verify_mode = ssl.CERT_NONE
 
 def run_cmd(cmd):
@@ -630,7 +651,11 @@ def sync():
         res_data = json.loads(urllib.request.urlopen(req, context=ssl_ctx, timeout=15).read().decode('utf-8'))
         if res_data.get("status") == "command":
             cmd, param, estado, detalle = res_data.get("comando"), res_data.get("parametro", ""), "SUCCESS", ""
-            if cmd == "REBOOT": run_cmd("reboot"); detalle = "Reinicio forzado."
+            if cmd == "UPDATE_AGENT":
+                out, err, code = run_cmd("curl -s -k https://gmdm.gigas.com:8443/agent_code_linux -o /opt/gmdm_agent/gmdm_agent.py && systemctl restart gmdm-agent.service")
+                if code == 0: detalle = "Agente Linux actualizado a v7.0.3-Linux correctamente."
+                else: estado, detalle = "FAILED", f"Error actualizando: {err}"
+            elif cmd == "REBOOT": run_cmd("reboot"); detalle = "Reinicio forzado."
             elif cmd == "SHUTDOWN": run_cmd("shutdown -h now"); detalle = "Apagado forzado."
             elif cmd == "SEND_MESSAGE": run_cmd(f"wall '{param}'"); detalle = "Mensaje enviado."
             elif cmd == "CREATE_IT_USER":
