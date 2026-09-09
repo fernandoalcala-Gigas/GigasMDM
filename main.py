@@ -969,6 +969,29 @@ def linux_heartbeat():
     conn.close()
     return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
 
+@app.route('/delete_agent', methods=['POST'])
+def delete_agent():
+    data = request.json
+    token = data.get('token')
+    es_valido, email, rol = validar_login_google(token)
+    if not es_valido or rol != "ADMIN": 
+        return jsonify({"status": "error", "msg": "Acceso denegado"}), 403
+
+    hostname = data.get('hostname')
+    if not hostname: 
+        return jsonify({"status": "error", "msg": "Hostname requerido"}), 400
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    # Eliminar el equipo del inventario y de la cola de comandos pendientes
+    c.execute("DELETE FROM agents WHERE hostname = %s", (hostname,))
+    c.execute("DELETE FROM command_queue WHERE hostname = %s", (hostname,))
+    conn.close()
+
+    register_audit_action("SERVER", email, "DELETE_AGENT", "SUCCESS", f"Equipo {hostname} eliminado del panel.")
+    
+    return jsonify({"status": "ok", "msg": f"Equipo {hostname} eliminado."})
+
 init_db()
 
 if __name__ == '__main__':
