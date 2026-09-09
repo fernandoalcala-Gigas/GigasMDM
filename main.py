@@ -2,6 +2,13 @@ import os
 import json
 import base64
 import re
+import logging
+logging.basicConfig(
+    filename='/opt/mdm_api/mdm_audit.log', 
+    level=logging.INFO, 
+    format='[%(asctime)s] - %(message)s', 
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 from datetime import datetime
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
