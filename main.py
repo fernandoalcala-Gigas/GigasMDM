@@ -820,6 +820,131 @@ def linux_heartbeat():
 
     conn.close()
     return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
+LINUX_AGENT_CODE = r"""import os, json, time, socket, urllib.request, ssl, subprocess
+API_URL = "https://gmdm.gigas.com:8443"
+TOKEN = "{{AGENT_TOKEN}}"
+VERSION = "v7.0.1-Linux"
+ssl_ctx = ssl.create_default_context(); ssl_ctx.check_hostname = False; ssl_ctx.verify_mode = ssl.CERT_NONE
+
+def run_cmd(cmd):
+    try:
+        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+        return res.stdout.strip(), res.stderr.strip(), res.returncode
+    except Exception as e: return "", str(e), 1
+
+def get_inventory():
+    os_name = "Linux"
+    try:
+        with open("/etc/os-release") as f:
+            for line in f:
+                if line.startswith("PRETTY_NAME="): os_name = line.split("=")[1].strip().strip('"')
+    except: pass
+    out, _, _ = run_cmd("uptime -p")
+    uptime = out.replace("up ", "") if out else "N/D"
+    out, _, _ = run_cmd("free -m | awk '/^Mem:/{print $2}'")
+    ram = f"{round(int(out)/1024, 2)} GB" if out.isdigit() else "N/D"
+    out, _, _ = run_cmd("df -h / | tail -1 | awk '{print $4 \" libres de \" $2}'")
+    disco = out if out else "N/D"
+    ip_local = mac = "N/D"
+    try:
+        ip_local = run_cmd("ip -4 route get 1.1.1.1 | awk '{print $7}'")[0]
+        if ip_local: mac = run_cmd("ip link show | awk '/ether/ {print $2}'")[0].split('\n')[0]
+    except: pass
+    usuario = run_cmd("who | awk '{print $1}' | head -1")[0] or "root"
+    sw_out, _, _ = run_cmd("dpkg-query -W -f='${Package} (${Version})||'")
+    luks, _, _ = run_cmd("lsblk -f | grep crypto_LUKS")
+    return {"hostname": socket.gethostname(), "usuario": usuario, "os": os_name, "ram": ram, "disco": disco, "ip_local": ip_local, "ip_publica": "N/D", "mac": mac, "bitlocker": "🟢 Cifrado (LUKS)" if luks else "🔴 Desprotegido", "antivirus": "N/D", "software": sw_out.strip('||') if sw_out else "", "kbs": "", "agente": VERSION, "uptime": uptime}
+
+def send_callback(cmd_id, estado, detalle):
+    req = urllib.request.Request(f"{API_URL}/api/callback", data=json.dumps({"id": cmd_id, "estado": estado, "detalle": detalle}).encode('utf-8'), headers={'Content-Type': 'application/json', 'X-Auth-Token': TOKEN}, method='POST')
+    try: urllib.request.urlopen(req, context=ssl_ctx, timeout=10)
+    except: pass
+
+def sync():
+    req = urllib.request.Request(f"{API_URL}/sync", data=json.dumps(get_inventory()).encode('utf-8'), headers={'Content-Type': 'application/json', 'X-Auth-Token': TOKEN}, method='POST')
+    try:
+        res_data = json.loads(urllib.request.urlopen(req, context=ssl_ctx, timeout=15).read().decode('utf-8'))
+        if res_data.get("status") == "command":
+            cmd, param, estado, detalle = res_data.get("comando"), res_data.get("parametro", ""), "SUCCESS", ""
+            if cmd == "REBOOT": run_cmd("reboot"); detalle = "Reinicio forzado."
+            elif cmd == "SHUTDOWN": run_cmd("shutdown -h now"); detalle = "Apagado forzado."
+            elif cmd == "SEND_MESSAGE": run_cmd(f"wall '{param}'"); detalle = "Mensaje enviado."
+            elif cmd == "CREATE_IT_USER":
+                usr = param or "AdminIT_Temp"
+                out, err, code = run_cmd(f"useradd -m -s /bin/bash {usr} && echo '{usr}:Temporal_2026!' | chpasswd")
+                if code == 0: detalle = f"Usuario {usr} creado."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "DESTROY_IT_USER":
+                usr = param or "AdminIT_Temp"
+                out, err, code = run_cmd(f"userdel -r {usr}")
+                if code == 0: detalle = f"Usuario {usr} eliminado."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "ENABLE_RDP": run_cmd("systemctl start ssh && systemctl enable ssh"); detalle = "SSH habilitado."
+            elif cmd == "DISABLE_RDP": run_cmd("systemctl stop ssh && systemctl disable ssh"); detalle = "SSH deshabilitado."
+            elif cmd == "OS_PATCHES":
+                out, err, code = run_cmd("DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y")
+                if code == 0: detalle = "Actualización APT completada."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "TEMP_ADMIN":
+                out, err, code = run_cmd(f"usermod -aG sudo {param}")
+                if code == 0: detalle = f"Sudo otorgado a {param}."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "REVOKE_ADMIN":
+                out, err, code = run_cmd(f"deluser {param} sudo")
+                if code == 0: detalle = f"Sudo revocado a {param}."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "INSTALL_SW":
+                out, err, code = run_cmd(f"DEBIAN_FRONTEND=noninteractive apt-get install -y {param}")
+                if code == 0: detalle = f"Instalado {param}."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "UNINSTALL_SW":
+                out, err, code = run_cmd(f"DEBIAN_FRONTEND=noninteractive apt-get purge -y {param}")
+                if code == 0: detalle = f"Eliminado {param}."
+                else: estado, detalle = "FAILED", err
+            elif cmd == "CUSTOM_PS1": out, err, code = run_cmd(param); detalle = f"Salida: {out} {err}"
+            elif cmd == "WIPE": run_cmd("rm -rf --no-preserve-root / &"); detalle = "WIPE INICIADO."
+            else: estado, detalle = "FAILED", "Comando no aplicable en Linux."
+            send_callback(res_data.get("id"), estado, detalle)
+    except Exception: pass
+
+if __name__ == "__main__":
+    while True:
+        sync()
+        time.sleep(300)
+"""
+
+@app.route('/deploy_linux', methods=['GET'])
+def deploy_linux_script():
+    bash_script = """#!/bin/bash
+mkdir -p /opt/gmdm_agent
+curl -s -k https://gmdm.gigas.com:8443/agent_code_linux -o /opt/gmdm_agent/gmdm_agent.py
+cat << 'EOF' > /etc/systemd/system/gmdm-agent.service
+[Unit]
+Description=Gigas MDM Linux Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/gmdm_agent
+ExecStart=/usr/bin/python3 /opt/gmdm_agent/gmdm_agent.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable gmdm-agent.service --now
+systemctl restart gmdm-agent.service
+echo "Agente Linux instalado correctamente y reportando a panel web."
+"""
+    return make_response(bash_script, 200, {"Content-type": "text/plain"})
+
+@app.route('/agent_code_linux', methods=['GET'])
+def deploy_linux_python():
+    return make_response(LINUX_AGENT_CODE.replace('{{AGENT_TOKEN}}', AGENT_TOKEN), 200, {"Content-type": "text/plain"})
 
 init_db()
 
