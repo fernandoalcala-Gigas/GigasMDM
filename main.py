@@ -7,8 +7,8 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import pymysql
+from dbutils.pooled_db import PooledDB
 
-# Carga de variables de entorno para evitar credenciales hardcodeadas
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -17,7 +17,6 @@ except ImportError:
 
 app = Flask(__name__)
 
-# Configuración CORS estricta (configurable vía .env)
 ALLOWED_ORIGINS = os.getenv('CORS_ORIGINS', 'https://gmdm.gigas.com').split(',')
 CORS(app, origins=ALLOWED_ORIGINS)
 
@@ -25,19 +24,27 @@ LINUX_AUDIT_LOG = "/var/log/gmdm_audit.log"
 SCRIPTS_DIR = "/opt/mdm_api/scripts"
 os.makedirs(SCRIPTS_DIR, exist_ok=True)
 
-# Credenciales y Tokens mediante variables de entorno
 AGENT_TOKEN = os.getenv('AGENT_TOKEN', 'Gigas_Sec_2026_x99')
 TEMP_ADMIN_PWD = os.getenv('TEMP_ADMIN_PWD', 'Temporal_2026!')
 
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'user': os.getenv('DB_USER', 'gmdm_user'),
-    'password': os.getenv('DB_PASS', 'UnaNuevaClave123!'), 
-    'database': os.getenv('DB_NAME', 'gmdm_db'),
-    'autocommit': True,
-    'cursorclass': pymysql.cursors.DictCursor,
-    'charset': 'utf8mb4'
-}
+# =================================================================
+# POOL DE CONEXIONES CENTRALIZADO (MARIADB)
+# =================================================================
+db_pool = PooledDB(
+    creator=pymysql,
+    maxconnections=20,     # Máximo de conexiones concurrentes
+    mincached=5,          # Conexiones mínimas inactivas listas para usar
+    maxcached=10,         # Conexiones máximas inactivas
+    maxshared=0,          # Conexiones compartidas (0 = exclusivas por hilo)
+    blocking=True,        # Bloquear y esperar si el pool está lleno
+    host=os.getenv('DB_HOST', 'localhost'),
+    user=os.getenv('DB_USER', 'gmdm_user'),
+    password=os.getenv('DB_PASS', 'UnaNuevaClave123!'),
+    database=os.getenv('DB_NAME', 'gmdm_db'),
+    autocommit=True,
+    cursorclass=pymysql.cursors.DictCursor,
+    charset='utf8mb4'
+)
 
 NOMBRES_ACCIONES = {
     "SEND_MESSAGE": "Enviar Mensaje",
@@ -61,7 +68,7 @@ NOMBRES_ACCIONES = {
 }
 
 def get_db_connection():
-    return pymysql.connect(**DB_CONFIG)
+    return db_pool.connection()
 
 def init_db():
     conn = get_db_connection()
@@ -206,39 +213,30 @@ def register_audit_action(hw_token, admin_email, action, status, details=""):
     except Exception:
         pass
     finally:
-        if 'conn' in locals() and conn.open:
+        if 'conn' in locals():
             conn.close()
 
-# =================================================================
-# SCRIPT DE POWERSHELL INCRUSTADO (DOUBLE TRIGGER + AUTOSTART)
-# =================================================================
 AGENT_CODE = r"""param([switch]$Once)
 
-# Fuerza TLS 1.2, se elimina la evasión SSL para mayor seguridad
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
 $Version = "v6.9.8"
-# ---------------------------------------------------------------------
-# AUDITORÍA LOCAL DUAL (CARPETA PÚBLICA + ACCESO DIRECTO EN C:\)
-# ---------------------------------------------------------------------
+
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
 $OldFolder    = "C:\GigasMDM_Audit"
 $SymlinkPath  = "C:\GigasMDM_Audit"
 
-# 1. Limpieza de la carpeta antigua con permisos bloqueados en C:\
 if ((Test-Path $OldFolder) -and -not (Get-Item $OldFolder).Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
     try { Remove-Item -Path $OldFolder -Recurse -Force -ErrorAction SilentlyContinue } catch {}
 }
 
-# 2. Crear carpeta física en ruta Pública si no existe
 if (-not (Test-Path $PublicFolder)) {
     New-Item -Path $PublicFolder -ItemType Directory | Out-Null
 }
 
-# 3. Aplicar permisos inmutables en la carpeta pública (Lectura para Usuarios)
 try {
     $Acl = Get-Acl $PublicFolder
     $Acl.SetAccessRuleProtection($true, $false)
@@ -253,23 +251,20 @@ try {
     Set-Acl -Path $PublicFolder -AclObject $Acl
 } catch {}
 
-# 4. Crear acceso directo en C:\ que parece una carpeta física y apunta a la pública
 if (-not (Test-Path $SymlinkPath)) {
     try {
         $WScriptShell = New-Object -ComObject WScript.Shell
         $Shortcut = $WScriptShell.CreateShortcut("$SymlinkPath.lnk")
         $Shortcut.TargetPath = $PublicFolder
-        $Shortcut.IconLocation = "%SystemRoot%\system32\shell32.dll,3" # Icono nativo de carpeta de Windows
+        $Shortcut.IconLocation = "%SystemRoot%\system32\shell32.dll,3"
         $Shortcut.Save()
     } catch {}
 }
 
-# 5. Registrar origen en Visor de Eventos si no existe
 if (-not [System.Diagnostics.EventLog]::SourceExists("GigasMDM")) {
     try { New-EventLog -LogName "Application" -Source "GigasMDM" -ErrorAction SilentlyContinue } catch {}
 }
 
-# 6. Función de escritura en el TXT inmutable y Visor de Eventos
 function Write-MDMAuditLog {
     param (
         [string]$Accion,
@@ -304,7 +299,6 @@ $RegPath = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
 $RegName = "GigasMDMAgent"
 Remove-ItemProperty -Path $RegPath -Name $RegName -ErrorAction SilentlyContinue
 
-# --- CREACIÓN / ACTUALIZACIÓN DE TAREA PROGRAMADA ---
 $TaskName = "GigasMDM_Service"
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$AgentPath`""
 $Trigger1 = New-ScheduledTaskTrigger -AtStartup
@@ -317,7 +311,6 @@ Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger @($Trigger1,
 if ((Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue).State -ne 'Running') {
     Start-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 }
-# ----------------------------------------------------
 
 function Get-Inventory {
     $osInfo = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue
@@ -566,7 +559,6 @@ if ($Once) { Send-Sync } else { while ($true) { Send-Sync; Start-Sleep -Seconds 
 @app.route('/deploy', methods=['GET'])
 @app.route('/agent_code', methods=['GET'])
 def deploy_agent():
-    # Inyección dinámica de configuraciones desde .env hacia el script PowerShell
     agent_script = AGENT_CODE.replace('{{AGENT_TOKEN}}', AGENT_TOKEN).replace('{{TEMP_ADMIN_PWD}}', TEMP_ADMIN_PWD)
     response = make_response(agent_script)
     response.headers["Content-Disposition"] = "attachment; filename=microagente.ps1"
@@ -575,7 +567,6 @@ def deploy_agent():
 
 @app.route('/sync', methods=['POST'])
 def sync():
-    # Validación obligatoria de token para evitar inyecciones masivas
     if request.headers.get('X-Auth-Token') != AGENT_TOKEN:
         return jsonify({"status": "error", "msg": "Unauthorized"}), 401
 
@@ -625,7 +616,6 @@ def sync():
 
 @app.route('/api/callback', methods=['POST'])
 def command_callback():
-    # Validación obligatoria de token para devolución de estados de ejecución
     if request.headers.get('X-Auth-Token') != AGENT_TOKEN:
         return jsonify({"status": "error", "msg": "Unauthorized"}), 401
 
@@ -705,7 +695,6 @@ def upload_scripts():
     archivos = request.files.getlist('scripts')
     for file in archivos:
         if file.filename.endswith('.ps1'):
-            # Neutralizado el vector de Path Traversal
             safe_filename = secure_filename(file.filename)
             filepath = os.path.join(SCRIPTS_DIR, safe_filename)
             file.save(filepath)
@@ -793,7 +782,8 @@ def linux_heartbeat():
     conn.close()
     return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
 
+# Inicializar esquema de DB al importar
+init_db()
+
 if __name__ == '__main__':
-    init_db()
-    # Usar servidor asíncrono para producción más adelante
-    app.run(host='0.0.0.0', port=8443, debug=True)
+    app.run(host='0.0.0.0', port=8443, debug=False)
