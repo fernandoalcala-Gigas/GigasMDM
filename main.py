@@ -106,6 +106,9 @@ def init_db():
     try: c.execute("ALTER TABLE agents ADD COLUMN ubicacion VARCHAR(100) DEFAULT 'N/D'")
     except Exception: pass
 
+    try: c.execute("ALTER TABLE agents ADD COLUMN fecha_insercion DATETIME DEFAULT CURRENT_TIMESTAMP")
+    except Exception: pass
+
     c.execute('''
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -863,7 +866,7 @@ def get_inventory():
 
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("SELECT hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, uptime, software, kbs, agente, DATE_FORMAT(ultima_conexion, '%Y-%m-%d %H:%i:%s') AS ultima_conexion FROM agents ORDER BY ultima_conexion DESC")
+    c.execute("SELECT hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, uptime, software, kbs, agente, DATE_FORMAT(ultima_conexion, '%Y-%m-%d %H:%i:%s') AS ultima_conexion, DATE_FORMAT(fecha_insercion, '%Y-%m-%d %H:%i:%s') AS fecha_insercion FROM agents ORDER BY ultima_conexion DESC")
     inventario = c.fetchall()
     conn.close()
     return jsonify({"status": "ok", "rol": rol, "data": inventario})
