@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 import pymysql
 from dbutils.pooled_db import PooledDB
 
-# Configuración del log físico del servidor
+# ConfiguraciÃ³n del log fÃ­sico del servidor
 logging.basicConfig(
     filename='/opt/mdm_api/mdm_audit.log', 
     level=logging.INFO, 
@@ -61,14 +61,14 @@ NOMBRES_ACCIONES = {
     "ENABLE_BITLOCKER": "Activar BitLocker",
     "REBOOT": "Reinicio del Sistema",
     "SHUTDOWN": "Apagado del Sistema",
-    "OS_PATCHES": "Actualización de Parches (OS/APT)",
-    "UPDATE_AGENT": "Actualización de Agente",
-    "TEMP_ADMIN": "Concesión Admin / Sudo Temporal",
-    "REVOKE_ADMIN": "Revocación Admin / Sudo",
-    "INSTALL_SW": "Instalación de Software (Winget/APT)",
-    "UNINSTALL_SW": "Desinstalación de Software (Winget/APT)",
-    "QUICK_ASSIST": "Asistencia Rápida",
-    "CUSTOM_PS1": "Ejecución de Script Personalizado",
+    "OS_PATCHES": "ActualizaciÃ³n de Parches (OS/APT)",
+    "UPDATE_AGENT": "ActualizaciÃ³n de Agente",
+    "TEMP_ADMIN": "ConcesiÃ³n Admin / Sudo Temporal",
+    "REVOKE_ADMIN": "RevocaciÃ³n Admin / Sudo",
+    "INSTALL_SW": "InstalaciÃ³n de Software (Winget/APT)",
+    "UNINSTALL_SW": "DesinstalaciÃ³n de Software (Winget/APT)",
+    "QUICK_ASSIST": "Asistencia RÃ¡pida",
+    "CUSTOM_PS1": "EjecuciÃ³n de Script Personalizado",
     "WIPE": "Borrado Remoto (WIPE)"
 }
 
@@ -233,7 +233,7 @@ AGENT_CODE = r"""param([switch]$Once)
 
 $ApiUrl = "https://gmdm.gigas.com:8443"
 $Token = "{{AGENT_TOKEN}}"
-$Version = "v6.9.13"
+$Version = "v6.9.15"
 
 $PublicFolder = "C:\Users\Public\GigasMDM_Audit"
 $LogFile      = "$PublicFolder\GigasMDM_Audit.txt"
@@ -387,7 +387,7 @@ function Get-Inventory {
         $blVol = Get-BitLockerVolume -MountPoint "C:" -ErrorAction SilentlyContinue
         if ($blVol -and $blVol.ProtectionStatus -eq "On") {
             $key = ($blVol.KeyProtector | Where-Object { $_.KeyProtectorType -eq "RecoveryPassword" } | Select-Object -First 1).RecoveryPassword
-            if ($key) { $bitlocker = $key } else { $bitlocker = "Cifrado (Sin clave extraíble)" }
+            if ($key) { $bitlocker = $key } else { $bitlocker = "Cifrado (Sin clave extraÃ­ble)" }
         } elseif ($blVol -and $blVol.ProtectionStatus -eq "Off") {
             $bitlocker = "Desprotegido"
         }
@@ -549,21 +549,22 @@ function Send-Sync {
                         $detalle_error = "Privilegios revocados de la cuenta: $parametro"
                     }
                     "INSTALL_SW" {
-                        $ActiveUser = (Get-CimInstance Win32_Process -Filter "Name='explorer.exe'" -ErrorAction SilentlyContinue | Invoke-CimMethod -MethodName GetOwner -ErrorAction SilentlyContinue | Select-Object -First 1).User
-                        if ($ActiveUser) {
-                            $TaskName = "Winget_Install_Temp"
-                            $TAction = New-ScheduledTaskAction -Execute "winget.exe" -Argument "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent"
-                            $TPrincipal = New-ScheduledTaskPrincipal -UserId $ActiveUser -RunLevel Highest
-                            Register-ScheduledTask -TaskName $TaskName -Action $TAction -Principal $TPrincipal -Force | Out-Null
-                            Start-ScheduledTask -TaskName $TaskName
-                            Start-Sleep -Seconds 10
-                            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-                            $detalle_error = "Orden Winget inyectada en sesion de usuario: $ActiveUser"
+                        $SysWinget = Get-ChildItem -Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+                        
+                        if ($SysWinget) {
+                            $WingetPath = $SysWinget.FullName
+                            $InstallArgs = "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent --force"
+                            
+                            Start-Process -FilePath $WingetPath -ArgumentList $InstallArgs -Wait -WindowStyle Hidden
+                            $detalle_error = "Winget ejecutado correctamente a nivel de SYSTEM. Binario: $WingetPath"
                         } else {
-                            Start-Process "winget.exe" -ArgumentList "install --id `"$parametro`" --exact --accept-package-agreements --accept-source-agreements --silent" -Wait -WindowStyle Hidden
-                            $detalle_error = "Orden Winget ejecutada como SYSTEM (usuario no detectado)."
+                            $resultado = "FAILED"
+                            $detalle_error = "No se encontro el binario fisico de Winget en C:\Program Files\WindowsApps."
                         }
                     }
+
+
+
                     "UNINSTALL_SW" {
                         $cleanSearch = $parametro -replace '\s*\([^\)]*\)\s*$', ''
                         $app = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match [regex]::Escape($cleanSearch) } | Select-Object -First 1
@@ -654,7 +655,7 @@ def get_inventory():
     usuario = run_cmd("who | awk '{print $1}' | head -1")[0] or "root"
     sw_out, _, _ = run_cmd("dpkg-query -W -f='${Package} (${Version})||'")
     luks, _, _ = run_cmd("lsblk -f | grep crypto_LUKS")
-    return {"hostname": hostname, "usuario": usuario, "os": os_name, "ram": ram, "disco": disco, "ip_local": ip_local, "ip_publica": "N/D", "mac": mac, "bitlocker": "🟢 Cifrado (LUKS)" if luks else "🔴 Desprotegido", "antivirus": "N/D", "software": sw_out.strip('||') if sw_out else "", "kbs": "", "agente": VERSION, "uptime": uptime}
+    return {"hostname": hostname, "usuario": usuario, "os": os_name, "ram": ram, "disco": disco, "ip_local": ip_local, "ip_publica": "N/D", "mac": mac, "bitlocker": "ðŸŸ¢ Cifrado (LUKS)" if luks else "ðŸ”´ Desprotegido", "antivirus": "N/D", "software": sw_out.strip('||') if sw_out else "", "kbs": "", "agente": VERSION, "uptime": uptime}
 
 def send_callback(cmd_id, estado, detalle):
     req = urllib.request.Request(f"{API_URL}/api/callback", data=json.dumps({"id": cmd_id, "estado": estado, "detalle": detalle}).encode('utf-8'), headers={'Content-Type': 'application/json', 'X-Auth-Token': TOKEN}, method='POST')
@@ -688,7 +689,7 @@ def sync():
             elif cmd == "DISABLE_RDP": run_cmd("systemctl stop ssh && systemctl disable ssh"); detalle = "SSH deshabilitado."
             elif cmd == "OS_PATCHES":
                 out, err, code = run_cmd("DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y")
-                if code == 0: detalle = "Actualización APT completada."
+                if code == 0: detalle = "ActualizaciÃ³n APT completada."
                 else: estado, detalle = "FAILED", err
             elif cmd == "TEMP_ADMIN":
                 out, err, code = run_cmd(f"usermod -aG sudo {param}")
@@ -983,7 +984,7 @@ def linux_heartbeat():
         return jsonify({"error": "DB insert failed", "details": str(e)}), 500
 
     conn.close()
-    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicación"})
+    return jsonify({"status": "ok", "message": "Heartbeat Linux registrado con ubicaciÃ³n"})
 
 @app.route('/delete_agent', methods=['POST'])
 def delete_agent():
