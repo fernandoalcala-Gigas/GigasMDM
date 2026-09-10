@@ -7,51 +7,51 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
-      --bg: #070d1e; 
-      --card: #0d1733; 
+      --bg: #070d1e;
+      --card: #0d1733;
       --card-inner: #091024;
-      --text: #e2e8f0; 
-      --accent: #3b82f6; 
+      --text: #e2e8f0;
+      --accent: #3b82f6;
       --green: #10b981;
-      --red: #ef4444; 
-      --border: #1e293b; 
+      --red: #ef4444;
+      --border: #1e293b;
       --subtext: #94a3b8;
     }
 
     * { box-sizing: border-box; }
-
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: var(--bg); 
-      color: var(--text); 
-      padding: 20px; 
-      margin: 0; 
-      height: 100vh; 
-      overflow: hidden; 
-      display: flex; 
-      flex-direction: column; 
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    #login-container { 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      height: 100%; 
-      flex-direction: column; 
-      background: var(--bg); 
+    #login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      flex-direction: column;
+      background: var(--bg);
     }
 
-    #login-container h2 { 
-      color: var(--text); 
-      margin-bottom: 20px; 
-      font-weight: normal; 
+    #login-container h2 {
+      color: var(--text);
+      margin-bottom: 20px;
+      font-weight: normal;
     }
 
-    #panel-principal { 
-      flex: 1; 
-      flex-direction: column; 
-      overflow: hidden; 
-      height: 100%; 
+    #panel-principal {
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
     }
 
     .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; }
@@ -133,6 +133,7 @@
           <button class="btn-install" style="background: #f59e0b;" onclick="copiarComandoLinux()">🐧 Instalar Linux</button>
         </div>
       </div>
+      
       <div class="subtitle" id="lbl-subtitulo">Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.</div>
 
       <div class="controls-bar">
@@ -151,13 +152,14 @@
             
             <!-- ACCIONES WINDOWS -->
             <option value="CREATE_IT_USER" data-os="windows">👤 Crear Usuario IT (Local)</option>
+            <option value="CREATE_TEMP_RDP" data-os="windows">⏱️ Crear Usuario RDP Temporal (JIT)</option>
             <option value="DESTROY_IT_USER" data-os="windows">🗑️ Eliminar Usuario IT (AdminIT_Temp)</option>
             <option value="ENABLE_RDP" data-os="windows">💻 Habilitar RDP</option>
             <option value="DISABLE_RDP" data-os="windows">🔌 Deshabilitar RDP</option>
             <option value="LOCK_SCREEN" data-os="windows">🔒 Bloquear Pantalla</option>
             <option value="ENABLE_BITLOCKER" data-os="windows">🛡️ Activar BitLocker</option>
             <option value="OS_PATCHES" data-os="windows">🛡️ Aplicar Parches OS (Windows Update)</option>
-            <option value="TEMP_ADMIN" data-os="windows">👑 Admin Temporal (2h)</option>
+            <option value="TEMP_ADMIN" data-os="windows">👑 Admin Temporal (JIT)</option>
             <option value="REVOKE_ADMIN" data-os="windows">🚫 Revocar Admin</option>
             <option value="INSTALL_SW" data-os="windows">📦 Instalar Software (Winget)</option>
             <option value="UNINSTALL_SW" data-os="windows">🗑️ Desinstalar Software</option>
@@ -212,7 +214,7 @@
           <tr><td colspan="6" style="text-align: center; color: var(--subtext);">📡 Cargando datos...</td></tr>
         </tbody>
       </table>
-</div>
+    </div>
 
     <div id="modal-it" class="modal">
       <div class="modal-content">
@@ -314,9 +316,10 @@
       "ENABLE_BITLOCKER": "Activar BitLocker", "REBOOT": "Reinicio del Sistema",
       "SHUTDOWN": "Apagado del Sistema", "OS_PATCHES": "Actualización de Parches",
       "UPDATE_AGENT": "Actualización de Agente", "TEMP_ADMIN": "Concesión Admin/Sudo Temporal",
-      "REVOKE_ADMIN": "Revocación Admin/Sudo", "INSTALL_SW": "Instalación de Software",
-      "UNINSTALL_SW": "Desinstalación de Software", "QUICK_ASSIST": "Asistencia Rápida",
-      "CUSTOM_PS1": "Ejecución de Comando Personalizado", "WIPE": "Borrado Remoto (WIPE)"
+      "CREATE_TEMP_RDP": "Crear Usuario RDP Temporal", "REVOKE_ADMIN": "Revocación Admin/Sudo",
+      "INSTALL_SW": "Instalación de Software", "UNINSTALL_SW": "Desinstalación de Software",
+      "QUICK_ASSIST": "Asistencia Rápida", "CUSTOM_PS1": "Ejecución de Comando Personalizado",
+      "WIPE": "Borrado Remoto (WIPE)"
     };
 
     const i18n = {
@@ -412,7 +415,7 @@
             }
             renderizarTabla(datosInventarioGlobal, res.rol);
             fetchOSStats();
-           }
+          }
         })
         .catch(err => {
           document.getElementById('tabla-cuerpo').innerHTML = `<tr><td colspan='6' style='text-align:center; color:var(--red); font-weight:bold;'>⛔ Acceso Bloqueado: ${err.message}</td></tr>`;
@@ -433,14 +436,14 @@
         if (av.includes("[Activo]")) {
           const nombre = av.replace(" [Activo]", "");
           return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
-            <span style="color:var(--green); font-weight:bold;">🟢 ${nombre}</span> 
-            <span style="background: rgba(16,185,129,0.15); color: var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--green); font-weight: bold;">ACTIVO</span>
+            <span style="color:var(--green); font-weight:bold;">🟢 ${nombre}</span>
+             <span style="background: rgba(16,185,129,0.15); color: var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--green); font-weight: bold;">ACTIVO</span>
           </div>`;
         } else if (av.includes("[Desactivado]")) {
           const nombre = av.replace(" [Desactivado]", "");
           return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
-            <span style="color:var(--red); font-weight:bold;">🔴 ${nombre}</span> 
-            <span style="background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--red); font-weight: bold;">DESACTIVADO</span>
+            <span style="color:var(--red); font-weight:bold;">🔴 ${nombre}</span>
+             <span style="background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--red); font-weight: bold;">DESACTIVADO</span>
           </div>`;
         } else {
           return `<div style="margin: 4px 0;"><span style="color:var(--subtext);">${av}</span></div>`;
@@ -489,16 +492,16 @@
             uptimeIcon = "⚠️";
             alertBg = "background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--red); display: inline-block; margin-top: 4px;";
           } else if (days >= 15) {
-            uptimeColor = "#fbbf24"; 
+            uptimeColor = "#fbbf24";
           }
         }
+        
         let formattedUptime = alertBg ? `<div style="${alertBg}"><span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span></div>` : `<span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span>`;
 
         const tr = document.createElement('tr');
         tr.className = "main-row";
         tr.onclick = () => toggleDetalle(index);
         
-        // --- AQUÍ ESTÁ EL CAMBIO: Inyectamos la fecha_insercion en la columna 5 ---
         tr.innerHTML = `
           <td style="text-align: center;" onclick="event.stopPropagation()">${controlCelda}</td>
           <td><span class="${estado.dot}"></span> <b style="cursor:pointer; color:#38bdf8;" onclick="event.stopPropagation(); abrirAuditoria('${item.hostname}')" title="Ver historial de este equipo">${item.hostname}</b> <span class="version-tag">${item.agente || 'v6.5.5'}</span><br><small style="color:var(--subtext)">Última conn: ${item.ultima_conexion}</small></td>
@@ -512,7 +515,7 @@
         `;
 
         const trDetail = document.createElement('tr');
-        trDetail.id = `detail-${index}`; 
+        trDetail.id = `detail-${index}`;
         trDetail.className = "detail-row";
         
         let softHtml = softList.length > 0 ? softList.map(s => {
@@ -523,7 +526,6 @@
 
         let kbHtml = kbList.length > 0 ? kbList.map(k => `<li>🔧 ${k}</li>`).join('') : '<li>Sin parches registrados</li>';
 
-        // --- EL SEGUNDO innerHTML (Ficha de detalles) SE QUEDA IGUAL ---
         trDetail.innerHTML = `
           <td colspan="6">
             <div class="detail-grid">
@@ -552,22 +554,28 @@
             </div>
           </td>
         `;
-        tbody.appendChild(tr); 
+        tbody.appendChild(tr);
         tbody.appendChild(trDetail);
       });
       filtrarComandosPorSO();
-}
+    }
+
     function toggleDetalle(index) {
       const detailRow = document.getElementById(`detail-${index}`);
       const btn = document.getElementById(`btn-exp-${index}`);
-      if (detailRow.style.display === "table-row") { 
-        detailRow.style.display = "none"; btn.innerHTML = "▼ Ficha"; 
-      } else { 
-        detailRow.style.display = "table-row"; btn.innerHTML = "▲ Ficha"; 
+      if (detailRow.style.display === "table-row") {
+         detailRow.style.display = "none"; 
+         btn.innerHTML = "▼ Ficha";
+      } else {
+         detailRow.style.display = "table-row"; 
+         btn.innerHTML = "▲ Ficha";
       }
     }
 
-    function copiarClave(texto) { navigator.clipboard.writeText(texto); alert("📋 Clave BitLocker copiada al portapapeles"); }
+    function copiarClave(texto) { 
+      navigator.clipboard.writeText(texto); 
+      alert("📋 Clave BitLocker copiada al portapapeles"); 
+    }
 
     function filtrarTabla() {
       const texto = document.getElementById('buscador').value.toLowerCase();
@@ -581,7 +589,7 @@
       renderizarTabla(filtrados);
     }
 
-    function toggleTodosCbs(maestro) { 
+    function toggleTodosCbs(maestro) {
       document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = maestro.checked);
       filtrarComandosPorSO();
     }
@@ -633,7 +641,6 @@
       switch (accion) {
         case "SEND_MESSAGE": return prompt("💬 Escribe el mensaje que se mostrará en pantalla al usuario:");
         case "CREATE_IT_USER": return prompt("👤 Escribe el nombre del nuevo usuario local:");
-        case "TEMP_ADMIN": return prompt("👑 Escribe el usuario al que darás permisos de Administrador/Sudo:");
         case "REVOKE_ADMIN": return prompt("🚫 Escribe el usuario al que quitarás permisos de Administrador/Sudo:");
         case "INSTALL_SW": return prompt("📦 Escribe el ID/Nombre del paquete o app (Winget / APT):");
         case "UNINSTALL_SW": return prompt("🗑️ Escribe el nombre del programa/paquete a desinstalar:");
@@ -649,12 +656,16 @@
       if (listaScriptsDisponibles.length === 0) {
         combo.innerHTML = `<option value="">⛔ No hay scripts .ps1 subidos</option>`;
       } else {
-        listaScriptsDisponibles.forEach(script => { combo.innerHTML += `<option value="${script}">📄 ${script}</option>`; });
+        listaScriptsDisponibles.forEach(script => { 
+          combo.innerHTML += `<option value="${script}">📄 ${script}</option>`; 
+        });
       }
       document.getElementById("modal-script").style.display = "block";
     }
 
-    function cerrarModalScript() { document.getElementById("modal-script").style.display = "none"; }
+    function cerrarModalScript() { 
+      document.getElementById("modal-script").style.display = "none"; 
+    }
 
     function confirmarEjecucionScript() {
       const scriptElegido = document.getElementById("sel-script-disponible").value;
@@ -680,40 +691,64 @@
       filtrarComandosPorSO();
     }
 
-    function enviarComandoLote() {
+    async function enviarComandoLote() {
       let seleccionados = Array.from(document.querySelectorAll('.cb-equipo:checked')).map(cb => cb.value);
       if (seleccionados.length === 0) return alert("⚠️ Selecciona al menos un equipo de la lista");
-      
+
       let accion = document.getElementById("sel-global").value;
       if (!accion) return alert("⚠️ Selecciona una acción del menú desplegable");
       if (accion === "CUSTOM_PS1") { abrirModalScript(seleccionados); return; }
-      
+
       let param = "";
-      const accionesConParametro = ["SEND_MESSAGE", "CREATE_IT_USER", "QUICK_ASSIST", "TEMP_ADMIN", "REVOKE_ADMIN", "INSTALL_SW", "UNINSTALL_SW"];
-      if (accionesConParametro.includes(accion)) {
-        param = pedirParametroAccion(accion);
-        if (param === null || param.trim() === "") return alert("⚠️ Operación cancelada. El parámetro es obligatorio.");
+
+      // Flujo dinámico de JIT y creación de cuentas
+      if (accion === "CREATE_TEMP_RDP") {
+          const user = prompt("👥 Nombre del usuario temporal:");
+          if (!user) return;
+          const pass = prompt(`🔑 Contraseña para el usuario '${user}':`);
+          if (!pass) return;
+          const horas = prompt("⏱️ ¿Cuántas horas de validez tendrá la cuenta?", "4");
+          if (!horas) return;
+          param = `${user}||${pass}||${horas}`;
+      } else if (accion === "TEMP_ADMIN") {
+          const user = prompt("🛡️ Escribe el nombre del usuario que recibirá privilegios de Administrador:");
+          if (!user) return;
+          const horas = prompt("⏱️ ¿Cuántas horas durarán los permisos?", "4");
+          if (!horas) return;
+          param = `${user}||${horas}`;
+      } else {
+          const accionesConParametro = ["SEND_MESSAGE", "CREATE_IT_USER", "QUICK_ASSIST", "REVOKE_ADMIN", "INSTALL_SW", "UNINSTALL_SW"];
+          if (accionesConParametro.includes(accion)) {
+            param = pedirParametroAccion(accion);
+            if (param === null || param.trim() === "") return alert("⚠️ Operación cancelada. El parámetro es obligatorio.");
+          }
       }
+
       if (accion === "WIPE") {
         if (!confirm("⚠️ ¡ATENCIÓN! Vas a solicitar el BORRADO REMOTO (WIPE) de los equipos seleccionados. ¿Confirmas esta acción crítica?")) return;
       }
-      
+
       const nombreHumano = NOMBRES_ACCIONES[accion] || accion;
-      seleccionados.forEach(hostname => {
-        fetch(API_URL + "/queue_command", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: accion, parametro: param })
-        })
-        .then(async res => {
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.msg || "Acceso denegado");
-          return data;
-        })
-        .then(data => { alert(`✅ Orden '${nombreHumano}' encolada correctamente para ${hostname}\n\n${data.msg || ''}`); })
-        .catch(err => { alert(`⛔ OPERACIÓN DENEGADA:\n\n${err.message}`); });
-      });
-      
+      const confirmacion = confirm(`🚀 Vas a enviar la orden [ ${nombreHumano} ] a ${seleccionados.length} equipos.\n\n¿Deseas continuar?`);
+      if (!confirmacion) return;
+
+      // Bucle de envío masivo sin interrupciones
+      let exitos = 0;
+      let fallos = 0;
+
+      for (const hostname of seleccionados) {
+          try {
+              const res = await fetch(API_URL + "/queue_command", {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: accion, parametro: param })
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok) { exitos++; } else { fallos++; }
+          } catch (error) { fallos++; }
+      }
+
+      alert(`✅ Lote finalizado.\n\n✔️ Enviados con éxito: ${exitos}\n❌ Errores: ${fallos}`);
       document.getElementById("sel-global").value = "";
       document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = false);
       filtrarComandosPorSO();
@@ -731,12 +766,20 @@
 
     function copiarAlPortapapeles(texto, mensajeExito) {
       const areaTexto = document.createElement("textarea");
-      areaTexto.value = texto; areaTexto.style.position = "fixed"; areaTexto.style.opacity = "0";
-      document.body.appendChild(areaTexto); areaTexto.select();
+      areaTexto.value = texto; 
+      areaTexto.style.position = "fixed"; 
+      areaTexto.style.opacity = "0";
+      document.body.appendChild(areaTexto); 
+      areaTexto.select();
+      
       try {
         if (document.execCommand("copy")) alert(mensajeExito);
-      } catch (err) { prompt("Copia manualmente:", texto); }
-      finally { document.body.removeChild(areaTexto); }
+      } catch (err) { 
+        prompt("Copia manualmente:", texto); 
+      }
+      finally { 
+        document.body.removeChild(areaTexto); 
+      }
     }
 
     function obtenerEstadoConexion(fechaUltimaConn) {
@@ -751,6 +794,7 @@
     function cargarHistorialAuditoria() {
       const tbodyAuditoria = document.getElementById('tabla-auditoria-cuerpo');
       tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b5cf6;">Consultando registro inmutable...</td></tr>`;
+      
       fetch(`${API_URL}/get_audit_logs?token=${tokenSesionGoogle}`)
         .then(async res => {
           const data = await res.json().catch(() => ({}));
@@ -762,7 +806,7 @@
             tbodyAuditoria.innerHTML = "";
             res.data.forEach(log => {
               const tr = document.createElement('tr');
-              const nombreAccion = NOMBRES_ACCIONES[log.accion] || log.accion; 
+              const nombreAccion = NOMBRES_ACCIONES[log.accion] || log.accion;
               const colorAccion = log.accion === "WIPE" ? "color: #ef4444; font-weight:bold;" : "color: #38bdf8;";
               tr.innerHTML = `
                 <td style="color: var(--subtext);">${log.fecha}</td>
@@ -778,7 +822,9 @@
             tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center;">No hay registros de auditoría disponibles.</td></tr>`;
           }
         })
-        .catch(err => { tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--red); font-weight: bold;">⛔ ${err.message}</td></tr>`; });
+        .catch(err => { 
+          tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--red); font-weight: bold;">⛔ ${err.message}</td></tr>`; 
+        });
     }
 
     function filtrarLogs() {
@@ -788,39 +834,53 @@
       var tbody = document.getElementById("tabla-auditoria-cuerpo");
       if (!tbody) return;
       var tr = tbody.getElementsByTagName("tr");
+      
       for (var i = 0; i < tr.length; i++) {
         var td = tr[i].getElementsByTagName("td")[3];
         if (td) {
           var txtValue = td.textContent || td.innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } else { tr[i].style.display = "none"; }
-        } 
+          if (txtValue.toUpperCase().indexOf(filter) > -1) { 
+            tr[i].style.display = ""; 
+          } else { 
+            tr[i].style.display = "none"; 
+          }
+        }
       }
     }
 
     function subirScripts() {
       const input = document.getElementById('input-scripts');
       if (input.files.length === 0) return alert("⚠️ Selecciona al menos un archivo .ps1");
+      
       const formData = new FormData();
       formData.append("token", tokenSesionGoogle);
+      
       for (let i = 0; i < input.files.length; i++) {
-        if (!input.files[i].name.toLowerCase().endsWith('.ps1')) { return alert("⛔ OPERACIÓN ABORTADA: Solo se permiten archivos con extensión .ps1"); }
+        if (!input.files[i].name.toLowerCase().endsWith('.ps1')) { 
+          return alert("⛔ OPERACIÓN ABORTADA: Solo se permiten archivos con extensión .ps1"); 
+        }
         formData.append("scripts", input.files[i]);
       }
+      
       fetch(API_URL + "/upload_scripts", { method: 'POST', body: formData })
         .then(res => res.json().catch(() => ({})))
         .then(data => {
           if (data.status === "ok") {
-            alert(`✅ Éxito: ${data.msg}`); input.value = "";
+            alert(`✅ Éxito: ${data.msg}`); 
+            input.value = "";
             fetch(`${API_URL}/get_scripts?token=${tokenSesionGoogle}`)
               .then(r => r.json())
               .then(d => { if (d.status === "ok") listaScriptsDisponibles = d.scripts; });
-          } else { alert(`⛔ Error: ${data.msg || "Error al subir archivos"}`); }
+          } else { 
+            alert(`⛔ Error: ${data.msg || "Error al subir archivos"}`); 
+          }
         })
         .catch(err => alert(`⛔ Error de conexión: ${err.message}`));
     }
 
     function desinstalarProgramaDirecto(hostname, nombreApp) {
       if (!confirm(`⚠️ ¿Confirmas que deseas solicitar la desinstalación remota (silenciosa) de "${nombreApp}" en el equipo ${hostname}?`)) return;
+      
       fetch(API_URL + "/queue_command", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -847,7 +907,7 @@
             });
             const data = await response.json();
             if (data.status === 'ok') {
-                cargarInventario(); 
+                cargarInventario();
             } else {
                 alert(`Error al eliminar: ${data.msg}`);
             }
@@ -855,46 +915,53 @@
             alert(`Error de conexión: ${error.message}`);
         }
     }
-    // Variable global para recordar en qué dirección estamos ordenando
-let ordenActual = { columna: -1, asc: true };
 
-function sortTable(n) {
-  // Mapeamos el número de columna con la variable del JSON que le corresponde
-  const campos = {
-    1: 'hostname',
-    2: 'usuario',
-    3: 'os',
-    4: 'fecha_insercion'
-  };
-  
-  const campo = campos[n];
-  if (!campo || !window.datosInventarioGlobal) return;
+    let ordenActual = { columna: -1, asc: true };
 
-  // Si pinchamos en la misma columna, invertimos el orden (A-Z a Z-A)
-  if (ordenActual.columna === n) {
-    ordenActual.asc = !ordenActual.asc;
-  } else {
-    ordenActual.columna = n;
-    ordenActual.asc = true;
-  }
+    function sortTable(n) {
+      console.log("Clic detectado en la columna número:", n);
+      
+      const campos = {
+        1: 'hostname',
+        2: 'usuario',
+        3: 'os',
+        4: 'fecha_insercion'
+      };
+      
+      const campo = campos[n];
+      
+      if (!campo) {
+        console.log("⚠️ Error: No hay un campo mapeado para la columna", n);
+        return;
+      }
+      
+      if (typeof datosInventarioGlobal === 'undefined' || !datosInventarioGlobal) {
+        console.log("⚠️ Error: La variable datosInventarioGlobal está vacía o no existe.");
+        return;
+      }
 
-  // Ordenamos el array de datos en memoria
-  datosInventarioGlobal.sort((a, b) => {
-    let valA = (a[campo] || "").toString().toLowerCase();
-    let valB = (b[campo] || "").toString().toLowerCase();
+      if (ordenActual.columna === n) {
+        ordenActual.asc = !ordenActual.asc;
+      } else {
+        ordenActual.columna = n;
+        ordenActual.asc = true;
+      }
 
-    if (valA < valB) return ordenActual.asc ? -1 : 1;
-    if (valA > valB) return ordenActual.asc ? 1 : -1;
-    return 0;
-  });
+      datosInventarioGlobal.sort((a, b) => {
+        let valA = (a[campo] || "").toString().toLowerCase();
+        let valB = (b[campo] || "").toString().toLowerCase();
 
-  // Comprobamos qué rol tiene el usuario para redibujar bien los botones
-  const badge = document.querySelector('.badge-sysadmin');
-  const rolActual = (badge && badge.innerText.includes('ADMIN')) ? "ADMIN" : "GUEST";
-  
-  // Volvemos a pintar la tabla ya ordenada limpiamente
-  renderizarTabla(datosInventarioGlobal, rolActual);
-}
+        if (valA < valB) return ordenActual.asc ? -1 : 1;
+        if (valA > valB) return ordenActual.asc ? 1 : -1;
+        return 0;
+      });
+
+      const badge = document.querySelector('.badge-sysadmin');
+      const rolActual = (badge && badge.innerText.includes('ADMIN')) ? "ADMIN" : "GUEST";
+      
+      renderizarTabla(datosInventarioGlobal, rolActual);
+      console.log("✅ Tabla ordenada por", campo, "y redibujada con éxito.");
+    }
   </script>
 </body>
 </html>
