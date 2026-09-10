@@ -185,22 +185,34 @@
     </div>
 
     <div style="flex: 1; overflow-y: auto; background: var(--card); border-radius: 6px; border: 1px solid var(--border); margin-top: 15px;">
-      <table>
+      <table id="tablaInventario">
         <thead>
           <tr>
-            <th style="width: 3%; text-align: center;"><input type="checkbox" id="check-maestro" onclick="toggleTodosCbs(this)"></th>
-            <th style="width: 25%;" id="th-equipo">EQUIPO / HOSTNAME</th>
-            <th style="width: 22%;" id="th-usuario">USUARIO ASIGNADO</th>
-            <th style="width: 25%;" id="th-so">SISTEMA OPERATIVO</th>
-            <th style="width: 15%;" id="th-estado">ESTADO SECTOR</th>
-            <th style="width: 10%; text-align: right;" id="th-detalles">DETALLES</th>
+            <th style="width: 3%; text-align: center;">
+                <input type="checkbox" id="check-maestro" onclick="toggleTodosCbs(this)">
+            </th>
+            <th style="width: 25%; cursor: pointer;" id="th-equipo" onclick="sortTable(1)" title="Ordenar por Equipo">
+                EQUIPO / HOSTNAME ↕️
+            </th>
+            <th style="width: 22%; cursor: pointer;" id="th-usuario" onclick="sortTable(2)" title="Ordenar por Usuario">
+                USUARIO ASIGNADO ↕️
+            </th>
+            <th style="width: 25%; cursor: pointer;" id="th-so" onclick="sortTable(3)" title="Ordenar por Sistema Operativo">
+                SISTEMA OPERATIVO ↕️
+            </th>
+            <th style="width: 15%; cursor: pointer;" id="th-fecha" onclick="sortTable(4)" title="Ordenar por Fecha Alta">
+                FECHA ALTA ↕️
+            </th>
+            <th style="width: 10%; text-align: right;" id="th-detalles">
+                DETALLES
+            </th>
           </tr>
         </thead>
         <tbody id="tabla-cuerpo">
           <tr><td colspan="6" style="text-align: center; color: var(--subtext);">📡 Cargando datos...</td></tr>
         </tbody>
       </table>
-    </div>
+</div>
 
     <div id="modal-it" class="modal">
       <div class="modal-content">
@@ -485,12 +497,14 @@
         const tr = document.createElement('tr');
         tr.className = "main-row";
         tr.onclick = () => toggleDetalle(index);
+        
+        // --- AQUÍ ESTÁ EL CAMBIO: Inyectamos la fecha_insercion en la columna 5 ---
         tr.innerHTML = `
           <td style="text-align: center;" onclick="event.stopPropagation()">${controlCelda}</td>
           <td><span class="${estado.dot}"></span> <b style="cursor:pointer; color:#38bdf8;" onclick="event.stopPropagation(); abrirAuditoria('${item.hostname}')" title="Ver historial de este equipo">${item.hostname}</b> <span class="version-tag">${item.agente || 'v6.5.5'}</span><br><small style="color:var(--subtext)">Última conn: ${item.ultima_conexion}</small></td>
           <td><b>${item.usuario || 'Sin Sesión'}</b><br><small style="color:var(--subtext)">SN: ${item.serial || 'N/D'}</small></td>
           <td><b>${soLimpio}</b></td>
-          <td><span style="color:${estado.color}; font-weight:bold;">${estado.text}</span></td>
+          <td><b>${item.fecha_insercion || 'Desconocida'}</b></td>
           <td style="text-align: right;">
             <span class="btn-ficha" id="btn-exp-${index}">▼ Ficha</span>
             ${esAdmin ? `<button onclick="event.stopPropagation(); borrarEquipo('${item.hostname}')" style="background: none; border: none; cursor: pointer; opacity: 0.3; font-size: 1.1em; margin-left: 10px; transition: opacity 0.2s;" title="Eliminar equipo del panel" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">🗑️</button>` : ''}
@@ -509,6 +523,7 @@
 
         let kbHtml = kbList.length > 0 ? kbList.map(k => `<li>🔧 ${k}</li>`).join('') : '<li>Sin parches registrados</li>';
 
+        // --- EL SEGUNDO innerHTML (Ficha de detalles) SE QUEDA IGUAL ---
         trDetail.innerHTML = `
           <td colspan="6">
             <div class="detail-grid">
@@ -541,8 +556,7 @@
         tbody.appendChild(trDetail);
       });
       filtrarComandosPorSO();
-    }
-
+}
     function toggleDetalle(index) {
       const detailRow = document.getElementById(`detail-${index}`);
       const btn = document.getElementById(`btn-exp-${index}`);
