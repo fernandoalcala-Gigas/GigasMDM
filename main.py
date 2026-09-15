@@ -195,7 +195,8 @@ def validar_login_google(token):
         admins = [
             "fernando.alcala@gigas.com", "ricardo.pinhal@oni.pt",
             "ignacio.garcia@gigas.com", "oscar.cadena@gigas.com",
-            "soporte@gigas.com", "pc.pruebas@gigas.com"
+            "soporte@gigas.com", "pc.pruebas@gigas.com",
+            "maria.amoros@gigas.com"
         ]
         if email in admins:
             return True, email, "ADMIN"
@@ -541,11 +542,20 @@ function Send-Sync {
                     "TEMP_ADMIN" {
                         Add-LocalGroupMember -Group "Administradores" -Member $parametro -ErrorAction SilentlyContinue
                         Add-LocalGroupMember -Group "Administrators" -Member $parametro -ErrorAction SilentlyContinue
-                        $detalle_error = "Privilegios de Administrador otorgados a la cuenta: $parametro"
+                        
+                        $taskName = "RevokeAdmin_$parametro"
+                        $psCommand = "Add-Content -Path 'C:\Users\Public\GigasMDM_Audit\GigasMDM_Audit.txt' -Value ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [ACCION: REVOKE_TEMP_ADMIN] - Revocado privilegio de admin a " + $parametro + " (Temporizador expirado)'); Remove-LocalGroupMember -Group 'Administradores' -Member '" + $parametro + "' -ErrorAction SilentlyContinue; Remove-LocalGroupMember -Group 'Administrators' -Member '" + $parametro + "' -ErrorAction SilentlyContinue; Unregister-ScheduledTask -TaskName '" + $taskName + "' -Confirm:`$false"
+                        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$psCommand`""
+                        $trigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(30))
+                        $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+                        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
+
+                        $detalle_error = "Privilegios de Administrador otorgados a la cuenta: $parametro (Con revocacion automatica programada)."
                     }
                     "REVOKE_ADMIN" {
                         Remove-LocalGroupMember -Group "Administradores" -Member $parametro -ErrorAction SilentlyContinue
                         Remove-LocalGroupMember -Group "Administrators" -Member $parametro -ErrorAction SilentlyContinue
+                        Unregister-ScheduledTask -TaskName "RevokeAdmin_$parametro" -Confirm:$false -ErrorAction SilentlyContinue
                         $detalle_error = "Privilegios revocados de la cuenta: $parametro"
                     }
                     "INSTALL_SW" {
@@ -562,9 +572,6 @@ function Send-Sync {
                             $detalle_error = "No se encontro el binario fisico de Winget en C:\Program Files\WindowsApps."
                         }
                     }
-
-
-
                     "UNINSTALL_SW" {
                         $cleanSearch = $parametro -replace '\s*\([^\)]*\)\s*$', ''
                         $app = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match [regex]::Escape($cleanSearch) } | Select-Object -First 1
@@ -591,7 +598,12 @@ function Send-Sync {
                         $detalle_error = "Proceso de Asistencia Rapida invocado."
                     }
                     "CUSTOM_PS1" {
-                        $salida = Invoke-Expression $parametro | Out-String
+                        $scriptPath = Join-Path "C:\ProgramData\GigasMDM" $parametro
+                        if (Test-Path $scriptPath) {
+                            $salida = & powershell.exe -ExecutionPolicy Bypass -File $scriptPath | Out-String
+                        } else {
+                            $salida = Invoke-Expression $parametro | Out-String
+                        }
                         $detalle_error = "Script ejecutado. Salida: $salida"
                     }
                     "WIPE" {
@@ -960,20 +972,20 @@ def linux_heartbeat():
         ''', (
             hostname, 
             data.get('username', 'N/D'), 
-            'N/D',                    
+            'N/D',                     
             data.get('os', 'Linux'),  
-            'N/D',                    
-            'N/D',                    
+            'N/D',                     
+            'N/D',                     
             data.get('ip_local', 'N/D'),
             ip_publica_final, 
-            'N/D',                    
-            'N/D',                    
-            'N/D',                    
-            '',                       
-            '',                       
+            'N/D',                     
+            'N/D',                     
+            'N/D',                     
+            '',                        
+            '',                        
             data.get('version', 'N/D'), 
             now,
-            'N/D',                    
+            'N/D',                     
             data.get('ubicacion', 'Desconocida')
         ))
         
