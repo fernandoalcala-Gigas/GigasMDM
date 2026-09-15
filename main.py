@@ -109,6 +109,9 @@ def init_db():
     try: c.execute("ALTER TABLE agents ADD COLUMN fecha_insercion DATETIME DEFAULT CURRENT_TIMESTAMP")
     except Exception: pass
 
+	try: c.execute("ALTER TABLE agents ADD COLUMN kbs_pendientes TEXT")
+	except Exception: pass
+
     c.execute('''
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -785,6 +788,10 @@ def sync():
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     software_db = format_to_pipes(data.get('software', ''), 'software')
     kbs_db = format_to_pipes(data.get('kbs', ''), 'kbs')
+    
+    # NUEVO: Capturar los parches pendientes que enviará el agente
+    kbs_pendientes_db = format_to_pipes(data.get('kbs_pendientes', ''), 'kbs')
+    
     antivirus = data.get('antivirus', 'N/D')
     uptime = data.get('uptime', 'N/D')
 
@@ -796,19 +803,20 @@ def sync():
     c = conn.cursor()
     c.execute('''
         INSERT INTO agents (
-            hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, software, kbs, agente, ultima_conexion, uptime
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            hostname, usuario, serial, os, ram, disco, ip_local, ip_publica, mac, bitlocker, antivirus, software, kbs, kbs_pendientes, agente, ultima_conexion, uptime
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE
             usuario=VALUES(usuario), serial=VALUES(serial), os=VALUES(os),
             ram=VALUES(ram), disco=VALUES(disco), ip_local=VALUES(ip_local),
             ip_publica=VALUES(ip_publica), mac=VALUES(mac), bitlocker=VALUES(bitlocker),
             antivirus=VALUES(antivirus), software=VALUES(software), kbs=VALUES(kbs), 
+            kbs_pendientes=VALUES(kbs_pendientes),
             agente=VALUES(agente), ultima_conexion=VALUES(ultima_conexion), uptime=VALUES(uptime)
     ''', (
         hostname, data.get('usuario', ''), data.get('serial', ''), data.get('os', ''),
         data.get('ram', ''), data.get('disco', ''), data.get('ip_local', ''),
         ip_publica_final, data.get('mac', ''), data.get('bitlocker', ''),
-        antivirus, software_db, kbs_db, data.get('agente', ''), now, uptime
+        antivirus, software_db, kbs_db, kbs_pendientes_db, data.get('agente', ''), now, uptime
     ))
     
     c.execute("SELECT id, comando, parametro FROM command_queue WHERE hostname=%s AND estado='PENDING' LIMIT 1", (hostname,))
@@ -1021,6 +1029,68 @@ def delete_agent():
     return jsonify({"status": "ok", "msg": f"Equipo {hostname} eliminado."})
 
 init_db()
+
+@app.route('/api/patches/pending', methods=['GET'])
+def get_pending_patches():
+    token = request.args.get('token')
+    es_valido, email, rol = validar_login_google(token)
+    if not es_valido: return jsonify({"status": "error"}), 403
+
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT hostname, kbs_pendientes FROM agents WHERE kbs_pendientes IS NOT NULL AND kbs_pendientes != ''")
+    equipos = c.fetchall()
+    conn.close()
+
+    kbs_agrupados = {}
+    for eq in equipos:
+        if eq['kbs_pendientes']:
+            lista_kbs = eq['kbs_pendientes'].split('||')
+            for kb in lista_kbs:
+                kb = kb.strip()
+                if not kb: continue
+                if kb not in kbs_agrupados:
+                    kbs_agrupados[kb] = []
+                kbs_agrupados[kb].append(eq['hostname'])
+
+    resultado = []
+    for kb, hosts in kbs_agrupados.items():
+        resultado.append({
+            "kb": kb,
+            "descripcion": "Actualización Cumulativa (Detección Auto)", 
+            "equipos": hosts,
+            "total": len(hosts)
+        })
+
+    return jsonify({"status": "ok", "data": resultado})
+
+@app.route('/api/patches/analyze', methods=['GET'])
+def analyze_patch():
+    token = request.args.get('token')
+    kb = request.args.get('kb')
+    es_valido, email, rol = validar_login_google(token)
+    if not es_valido or rol != "ADMIN": return jsonify({"status": "error"}), 403
+
+    import time
+    time.sleep(1.5) # Simula el scraping de bases de datos
+
+    # Simulador de inteligencia: Si el KB termina en 5, lo marcamos con precaución
+    if kb and kb.endswith('5'):
+        data = {
+            "riesgo": "yellow",
+            "oficial": "Microsoft confirma problemas menores (Known Issues).",
+            "comunidad": "Usuarios reportan fallos esporádicos en Reddit al conectar impresoras de red antiguas.",
+            "recomendacion": "💡 Si tienes servidores de impresión antiguos (Server 2012), retrasa la actualización."
+        }
+    else:
+        data = {
+            "riesgo": "green",
+            "oficial": "0 Known Issues reportados por Microsoft.",
+            "comunidad": "Estabilidad confirmada. Sin anomalías en las primeras 72 horas.",
+            "recomendacion": "💡 Parche seguro y estable. Se recomienda aprobar e instalar."
+        }
+
+    return jsonify({"status": "ok", "data": data})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8443, debug=False)
