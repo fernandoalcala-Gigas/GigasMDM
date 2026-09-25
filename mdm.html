@@ -17,7 +17,7 @@
       --border: #1e293b;
       --subtext: #94a3b8;
     }
-
+    
     * { box-sizing: border-box; }
     
     body {
@@ -31,7 +31,7 @@
       display: flex;
       flex-direction: column;
     }
-
+    
     #login-container {
       display: flex;
       justify-content: center;
@@ -40,25 +40,26 @@
       flex-direction: column;
       background: var(--bg);
     }
-
+    
     #login-container h2 {
       color: var(--text);
       margin-bottom: 20px;
       font-weight: normal;
     }
-
+    
     #panel-principal {
       flex: 1;
+      display: flex;
       flex-direction: column;
       overflow: hidden;
       height: 100%;
     }
-
+    
     .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; }
     .header-title { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: bold; color: #ffffff; }
     .header-title span { color: var(--subtext); font-size: 13px; font-weight: normal; }
     .header-right { display: flex; align-items: center; gap: 10px; }
-
+    
     .select-lang { background: #0f172a; color: white; border: 1px solid var(--border); padding: 5px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
     .badge-sysadmin { background: rgba(16, 185, 129, 0.15); color: var(--green); padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; border: 1px solid var(--green); }
     .user-email { font-size: 13px; color: var(--subtext); }
@@ -66,56 +67,61 @@
     .btn-refresh { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
     .btn-install { color: black; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
     .subtitle { color: var(--subtext); font-size: 13px; margin-bottom: 20px; }
-
+    
     .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .search-box { width: 45%; padding: 10px 14px; background: #0b132b; color: white; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
     .action-container { background: #0b132b; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
     .action-label { font-size: 13px; font-weight: bold; color: #60a5fa; }
     .action-select { padding: 6px; background: #070d1e; color: white; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
     .btn-execute { background: var(--green); color: black; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
-
+    
     table { width: 100%; border-collapse: collapse; }
     th { background: #091024; color: var(--subtext); text-transform: uppercase; font-size: 11px; padding: 12px 14px; text-align: left; box-shadow: inset 0 -1px 0 var(--border); position: sticky; top: 0; z-index: 10; }
     td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
     tr.main-row { cursor: pointer; }
     tr.main-row:hover { background: rgba(255, 255, 255, 0.02); }
-
+    
     .version-tag { background: #1e293b; color: #38bdf8; font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
     .dot-online { height: 9px; width: 9px; background-color: var(--green); border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--green); }
     .dot-offline { height: 9px; width: 9px; background-color: var(--red); border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--red); }
     .btn-ficha { color: #38bdf8; font-weight: bold; font-size: 12px; }
-
+    
     .detail-row { display: none; background: #050a17; }
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; padding: 15px; border-left: 3px solid var(--green); margin: 10px; background: #081026; border-radius: 4px; }
     .detail-card { background: var(--card-inner); padding: 14px; border-radius: 6px; border: 1px solid var(--border); }
     .detail-card h4 { margin: 0 0 12px 0; color: #ffffff; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .detail-card p { margin: 6px 0; font-size: 12px; color: var(--text); }
-
+    
     .bitlocker-box { background: #0284c7; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; margin: 8px 0; word-break: break-all; }
     .btn-copy { background: #334155; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 11px; cursor: pointer; margin-bottom: 10px; }
     .software-list { max-height: 180px; overflow-y: auto; padding-left: 15px; margin: 0; list-style: none; }
     .software-list li { font-size: 11px; color: #cbd5e1; margin-bottom: 4px; }
     .kb-list { padding-left: 0; list-style: none; margin: 5px 0; }
     .kb-list li { font-size: 12px; color: #38bdf8; margin-bottom: 3px; }
-
+    
     .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
     .modal-content { background: var(--card); margin: 10% auto; padding: 20px; border: 1px solid var(--border); border-radius: 8px; width: 450px; color: var(--text); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .close-modal { color: var(--subtext); font-size: 20px; cursor: pointer; }
+    
     .os-badge { background-color: var(--green); color: #000; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 11px; }
     .os-badge b { margin-left: 5px; font-size: 12px; }
   </style>
 </head>
 <body>
 
+  <!-- LOGIN CONTAINER -->
   <div id="login-container">
     <h2>🔒 Acceso Corporativo MDM</h2>
     <div id="g_id_onload" data-client_id="1045705036890-4lglh498lp4g0dnc4l2s0ejhv9jgph8d.apps.googleusercontent.com" data-callback="manejarLoginGoogle"></div>
     <div class="g_id_signin" data-type="standard"></div>
   </div>
 
+  <!-- PANEL PRINCIPAL -->
   <div id="panel-principal" style="display: none;">
     <div style="flex-shrink: 0; padding-bottom: 10px;">
+      
+      <!-- CABECERA -->
       <div class="header-bar">
         <div class="header-title">⚡ Gigas Endpoint Manager <span>v6.5 PRO</span></div>
         <div class="header-right">
@@ -126,8 +132,10 @@
           </select>
           <span class="badge-sysadmin">⚡ ADMIN IT</span>
           <span class="user-email" id="user-email-display">usuario@gigas.com</span>
+          
           <button class="btn-header" onclick="abrirGestionIT()">🌐 <span id="lbl-gestion-it">Gestión IT</span></button>
           <button class="btn-header" style="background: #8b5cf6;" onclick="abrirAuditoria()" id="btn-auditoria">📜 Auditoría</button>
+          <button class="btn-header" style="background: #10b981; color: black;" onclick="abrirModalParches()" id="btn-parches">🛡️ Gestión Parches</button>
           <button class="btn-refresh" onclick="cargarInventario()">🔄 <span id="lbl-refrescar">Refrescar</span></button>
           <button class="btn-install" style="background: #38bdf8;" onclick="copiarComandoWindows()">⚡ Instalar Windows</button>
           <button class="btn-install" style="background: #f59e0b;" onclick="copiarComandoLinux()">🐧 Instalar Linux</button>
@@ -136,8 +144,10 @@
       
       <div class="subtitle" id="lbl-subtitulo">Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.</div>
 
+      <!-- BARRA DE CONTROLES Y BÚSQUEDA -->
       <div class="controls-bar">
         <input type="text" id="buscador" class="search-box" placeholder="🔍 Buscar por máquina, usuario, ubicación..." onkeyup="filtrarTabla()">
+        
         <div class="action-container">
           <span class="action-label" id="lbl-accion-masiva">⚡ Acción Masiva:</span>
           <select id="sel-global" class="action-select">
@@ -151,9 +161,9 @@
             <option value="CUSTOM_PS1" data-os="universal">💻 Comando / Script Personalizado</option>
             
             <!-- ACCIONES WINDOWS -->
-            <option value="CREATE_IT_USER" data-os="windows">👤 Crear Usuario IT (Local)</option>
+            <option value="CREATE_IT_USER" data-os="windows">👤 Crear Usuario Local (nombre + contraseña)</option>
             <option value="CREATE_TEMP_RDP" data-os="windows">⏱️ Crear Usuario RDP Temporal (JIT)</option>
-            <option value="DESTROY_IT_USER" data-os="windows">🗑️ Eliminar Usuario IT (AdminIT_Temp)</option>
+            <option value="DESTROY_IT_USER" data-os="windows">🗑️ Eliminar Usuario Local (pide el nombre)</option>
             <option value="ENABLE_RDP" data-os="windows">💻 Habilitar RDP</option>
             <option value="DISABLE_RDP" data-os="windows">🔌 Deshabilitar RDP</option>
             <option value="LOCK_SCREEN" data-os="windows">🔒 Bloquear Pantalla</option>
@@ -175,38 +185,40 @@
             <option value="REVOKE_ADMIN" data-os="linux">🚫 Revocar Permisos Sudo</option>
             <option value="INSTALL_SW" data-os="linux">📦 Instalar Paquete (apt install)</option>
             <option value="UNINSTALL_SW" data-os="linux">🗑️ Desinstalar Paquete (apt purge)</option>
+            <option value="WIPE" data-os="linux" style="color: #ef4444; font-weight: bold;">🚨 WIPE Linux (Borrado criptográfico LUKS)</option>
           </select>
           <button class="btn-execute" onclick="enviarComandoLote()"><span id="lbl-ejecutar">🚀 Ejecutar</span></button>
         </div>
       </div>
 
       <div style="font-size: 13px; display: flex; align-items: center;">
-          <span style="color: var(--subtext); margin-right: 15px;"><strong>Distribución OS:</strong></span>
-          <div id="osStatsList" style="display: flex; gap: 8px;"></div>
+        <span style="color: var(--subtext); margin-right: 15px;"><strong>Distribución OS:</strong></span>
+        <div id="osStatsList" style="display: flex; gap: 8px;"></div>
       </div>
     </div>
 
+    <!-- TABLA DE INVENTARIO -->
     <div style="flex: 1; overflow-y: auto; background: var(--card); border-radius: 6px; border: 1px solid var(--border); margin-top: 15px;">
       <table id="tablaInventario">
         <thead>
           <tr>
             <th style="width: 3%; text-align: center;">
-                <input type="checkbox" id="check-maestro" onclick="toggleTodosCbs(this)">
+              <input type="checkbox" id="check-maestro" onclick="toggleTodosCbs(this)">
             </th>
             <th style="width: 25%; cursor: pointer;" id="th-equipo" onclick="sortTable(1)" title="Ordenar por Equipo">
-                EQUIPO / HOSTNAME ↕️
+              EQUIPO / HOSTNAME ↕️
             </th>
             <th style="width: 22%; cursor: pointer;" id="th-usuario" onclick="sortTable(2)" title="Ordenar por Usuario">
-                USUARIO ASIGNADO ↕️
+              USUARIO ASIGNADO ↕️
             </th>
             <th style="width: 25%; cursor: pointer;" id="th-so" onclick="sortTable(3)" title="Ordenar por Sistema Operativo">
-                SISTEMA OPERATIVO ↕️
+              SISTEMA OPERATIVO ↕️
             </th>
             <th style="width: 15%; cursor: pointer;" id="th-fecha" onclick="sortTable(4)" title="Ordenar por Fecha Alta">
-                FECHA ALTA ↕️
+              FECHA ALTA ↕️
             </th>
             <th style="width: 10%; text-align: right;" id="th-detalles">
-                DETALLES
+              DETALLES
             </th>
           </tr>
         </thead>
@@ -216,6 +228,7 @@
       </table>
     </div>
 
+    <!-- MODAL GESTIÓN IT -->
     <div id="modal-it" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -238,6 +251,7 @@
       </div>
     </div>
 
+    <!-- MODAL SCRIPT POWERSHELL -->
     <div id="modal-script" class="modal">
       <div class="modal-content" style="width: 420px;">
         <div class="modal-header">
@@ -252,6 +266,64 @@
       </div>
     </div>
 
+    <!-- MODAL PARCHES -->
+    <div id="modal-parches" class="modal">
+      <!-- Parche 27: alto maximo y scroll propio; si no, la ficha del KB queda fuera de la pantalla -->
+      <div id="modal-parches-contenido" class="modal-content" style="width: 800px; max-width: 95vw; max-height: 88vh; overflow-y: auto; margin: 4vh auto; box-sizing: border-box;">
+        <div class="modal-header">
+          <h3 style="margin:0; color:#10b981;">🛡️ Inteligencia de Parches (KBs Pendientes)</h3>
+          <span class="close-modal" onclick="cerrarModalParches()">&times;</span>
+        </div>
+        <div style="padding: 20px;">
+          <table style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 20%;">Código KB</th>
+                <th style="width: 40%;">Descripción</th>
+                <th style="width: 20%;">Afectados</th>
+                <th style="width: 20%;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-parches-cuerpo">
+              <tr><td colspan="4" style="text-align: center;">Cargando parches pendientes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Sub-panel de decisión sobre el parche -->
+        <div id="panel-analisis" style="display: none; padding: 20px; border-top: 1px solid var(--border); background: var(--card-inner);">
+          <div id="loader-parche" style="text-align: center; color: #38bdf8; font-weight: bold; margin-bottom: 15px;">
+            Cargando la ficha del parche...
+          </div>
+          <div id="resultado-analisis" style="display: none;">
+            <h4 id="titulo-riesgo" style="margin-top: 0;"></h4>
+            <p style="font-size: 12px; color: var(--subtext); margin-bottom: 12px;">
+              Este panel no evalúa el parche. Reúne las fuentes para que las leas tú y guarda la decisión que tomes.
+            </p>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: bold; color: var(--subtext); margin-bottom: 8px;">Fuentes</div>
+              <div id="enlaces-kb" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; border-left: 3px solid #38bdf8; margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: bold; color: var(--subtext); margin-bottom: 6px;">Decisión registrada</div>
+              <div id="txt-recomendacion" style="font-size: 12px; color: white;"></div>
+            </div>
+            <textarea id="motivo-kb" rows="2" placeholder="Motivo (obligatorio para cuarentena y bloqueo)" style="width: 100%; box-sizing: border-box; background: var(--card); color: #cbd5e1; border: 1px solid var(--border); border-radius: 4px; padding: 6px; font-size: 12px; font-family: inherit; margin-bottom: 12px;"></textarea>
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+              <label style="font-size: 12px; color: var(--subtext); margin-right: auto;">Volver a revisar dentro de
+                <input id="dias-cuarentena" type="number" min="1" max="180" value="7" style="width: 55px; background: var(--card); color: #cbd5e1; border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 12px;"> días
+              </label>
+              <button style="background: var(--red); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="guardarEstadoKb('BLOQUEADO')">⛔ Bloquear</button>
+              <button style="background: #f59e0b; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="guardarEstadoKb('CUARENTENA')">⏸ Cuarentena</button>
+              <button style="background: var(--green); color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="guardarEstadoKb('APROBADO')">✅ Aprobar</button>
+              <button id="btn-instalar" disabled style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: not-allowed; font-weight: bold; opacity: 0.4;" onclick="aprobarParche()">Instalar en los equipos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL AUDITORÍA -->
     <div id="modal-auditoria" class="modal">
       <div class="modal-content" style="width: 85%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
         <div class="modal-header">
@@ -285,31 +357,67 @@
     let tokenSesionGoogle = "";
     let listaScriptsDisponibles = [];
     let equiposSeleccionadosParaScript = [];
+    let kbActualAnalizando = "";
+    let equiposAfectadosActuales = [];
 
-    function manejarLoginGoogle(respuesta) {
-      tokenSesionGoogle = respuesta.credential;
-      const payloadBase64 = respuesta.credential.split('.')[1];
-      const decodedJson = JSON.parse(atob(payloadBase64));
-      const correoUsuario = decodedJson.email.toLowerCase();
-
-      const adminsAutorizados = [
-        "fernando.alcala@gigas.com", "ricardo.pinhal@oni.pt",
-        "ignacio.garcia@gigas.com", "oscar.cadena@gigas.com",
-        "soporte@gigas.com", "pc.pruebas@gigas.com",
-	"maria.amoros@gigas.com"
-      ];
-
-      if (adminsAutorizados.includes(correoUsuario)) {
-        document.getElementById('user-email-display').innerText = correoUsuario;
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('panel-principal').style.display = 'flex';
-        cargarInventario();
-      } else {
-        alert("⛔ Acceso denegado.\n\nLa cuenta " + correoUsuario + " no tiene permisos en el RBAC.");
+    let caducidadSesion = 0;
+    let correoSesion = "";
+ 
+    async function manejarLoginGoogle(respuesta) {
+      const correoUsuario = JSON.parse(
+        atob(respuesta.credential.split('.')[1])
+      ).email.toLowerCase();
+ 
+      let sesion;
+      try {
+        const res = await fetch(API_URL + "/session/start", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: respuesta.credential })
+        });
+        sesion = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(sesion.msg || ("HTTP " + res.status));
+      } catch (e) {
+        alert("Acceso denegado.\n\nLa cuenta " + correoUsuario +
+              " no tiene permisos en GMDM.\n\nRespuesta del servidor: " + e.message);
         window.location.reload();
+        return;
       }
+ 
+      tokenSesionGoogle = sesion.sesion;
+      caducidadSesion = sesion.caduca * 1000;
+      correoSesion = sesion.email;
+ 
+      document.getElementById('user-email-display').innerText = correoSesion;
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('panel-principal').style.display = 'flex';
+      cargarInventario();
+      vigilarCaducidad();
     }
-
+ 
+    function sesionCaducada() {
+      alert("La sesion del panel ha caducado.\n\n" +
+            "Vuelve a entrar con Google para seguir enviando ordenes. " +
+            "No se ha ejecutado nada en los equipos.");
+      window.location.reload();
+    }
+ 
+    function vigilarCaducidad() {
+      setInterval(() => {
+        const restan = caducidadSesion - Date.now();
+        const display = document.getElementById('user-email-display');
+        if (restan <= 0) { sesionCaducada(); return; }
+        if (restan < 10 * 60 * 1000) {
+          display.innerText = correoSesion + "  (la sesion caduca en " +
+                              Math.ceil(restan / 60000) + " min)";
+          display.style.color = "#ff6b6b";
+        } else {
+          display.innerText = correoSesion;
+          display.style.color = "";
+        }
+      }, 30000);
+    }
+    
     const NOMBRES_ACCIONES = {
       "SEND_MESSAGE": "Enviar Mensaje", "CREATE_IT_USER": "Crear Usuario IT",
       "DESTROY_IT_USER": "Eliminar Usuario IT", "ENABLE_RDP": "Habilitar RDP/SSH",
@@ -322,13 +430,13 @@
       "QUICK_ASSIST": "Asistencia Rápida", "CUSTOM_PS1": "Ejecución de Comando Personalizado",
       "WIPE": "Borrado Remoto (WIPE)"
     };
-
+    
     const i18n = {
       es: { gestionIt: "Gestión IT", refrescar: "Refrescar", subtitulo: "Haz clic en cualquier fila de la tabla para <b>desplegar la ficha técnica completa</b> del equipo.", accionMasiva: "⚡ Acción Masiva:", ejecutar: "🚀 Ejecutar", equipo: "EQUIPO / HOSTNAME", usuario: "USUARIO ASIGNADO", so: "SISTEMA OPERATIVO", estado: "ESTADO SECTOR", detalles: "DETALLES", buscar: "🔍 Buscar por máquina, usuario, ubicación..." },
       en: { gestionIt: "IT Management", refrescar: "Refresh", subtitulo: "Click on any table row to <b>expand full technical sheet</b> of the device.", accionMasiva: "⚡ Mass Action:", ejecutar: "🚀 Execute", equipo: "DEVICE / HOSTNAME", usuario: "ASSIGNED USER", so: "OPERATING SYSTEM", estado: "SECTOR STATUS", detalhes: "DETAILS", buscar: "🔍 Search by device, user, location..." },
       pt: { gestionIt: "Gestão IT", refrescar: "Atualizar", subtitulo: "Clique em qualquer linha da tabela para <b>expandir a ficha técnica completa</b> do dispositivo.", accionMasiva: "⚡ Ação em Massa:", ejecutar: "🚀 Executar", equipo: "DISPOSITIVO / HOSTNAME", usuario: "USUÁRIO ATRIBUÍDO", so: "SISTEMA OPERACIONAL", estado: "STATUS SETOR", detalhes: "DETALHES", buscar: "🔍 Pesquisar por dispositivo, usuário, localização..." }
     };
-
+    
     function cambiarIdioma() {
       const lang = document.getElementById('lang-select').value;
       const t = i18n[lang];
@@ -344,10 +452,10 @@
       document.getElementById('th-detalles').innerText = t.detalles;
       document.getElementById('buscador').placeholder = t.buscar;
     }
-
+    
     function abrirGestionIT() { document.getElementById('modal-it').style.display = 'block'; }
     function cerrarGestionIT() { document.getElementById('modal-it').style.display = 'none'; }
-
+    
     function abrirAuditoria(hostnameSeleccionado = "") {
       document.getElementById("modal-auditoria").style.display = "block";
       if (!hostnameSeleccionado) {
@@ -358,25 +466,24 @@
       if (inputFiltro) inputFiltro.value = hostnameSeleccionado;
       cargarHistorialAuditoria();
     }
-
     function cerrarAuditoria() { document.getElementById('modal-auditoria').style.display = 'none'; }
-
+    
     async function fetchOSStats() {
       try {
-          const response = await fetch(`${API_URL}/api/stats/os`);
-          if (!response.ok) throw new Error('Fallo API OS');
-          const stats = await response.json();
-          const listElement = document.getElementById('osStatsList');
-          listElement.innerHTML = '';
-          for (const [os, count] of Object.entries(stats)) {
-              const badge = document.createElement('span');
-              badge.className = 'os-badge';
-              badge.innerHTML = `${os} <b>${count}</b>`;
-              listElement.appendChild(badge);
-          }
+        const response = await fetch(`${API_URL}/api/stats/os?token=${tokenSesionGoogle}`);
+        if (!response.ok) throw new Error('Fallo API OS');
+        const stats = await response.json();
+        const listElement = document.getElementById('osStatsList');
+        listElement.innerHTML = '';
+        for (const [os, count] of Object.entries(stats)) {
+          const badge = document.createElement('span');
+          badge.className = 'os-badge';
+          badge.innerHTML = `${os} <b>${count}</b>`;
+          listElement.appendChild(badge);
+        }
       } catch (error) { console.error('Error cargando estadísticas de OS:', error); }
     }
-
+    
     function cargarInventario() {
       fetch(`${API_URL}/get_inventory?token=${tokenSesionGoogle}`)
         .then(async res => {
@@ -391,12 +498,12 @@
               .then(r => r.json())
               .then(d => { if (d.status === "ok") listaScriptsDisponibles = d.scripts; })
               .catch(() => {});
-
+              
             const cajaAcciones = document.querySelector('.action-container');
             const badgeCabecera = document.querySelector('.badge-sysadmin');
             const checkMaestro = document.getElementById('check-maestro');
             const btnAuditoria = document.getElementById('btn-auditoria');
-
+            
             if (res.rol !== "ADMIN") {
                cajaAcciones.style.display = 'none';
                if (checkMaestro) checkMaestro.style.display = 'none';
@@ -415,6 +522,9 @@
                badgeCabecera.style.background = 'rgba(16, 185, 129, 0.15)';
             }
             renderizarTabla(datosInventarioGlobal, res.rol);
+            if (!window._temporizadorInventario) {
+              window._temporizadorInventario = setInterval(cargarInventario, 60000);
+            }
             fetchOSStats();
           }
         })
@@ -422,12 +532,12 @@
           document.getElementById('tabla-cuerpo').innerHTML = `<tr><td colspan='6' style='text-align:center; color:var(--red); font-weight:bold;'>⛔ Acceso Bloqueado: ${err.message}</td></tr>`;
         });
     }
-
+    
     function limpiarSO(cadenaOS) {
       if (!cadenaOS) return "Windows (Desconocido)";
       return cadenaOS.replace("Microsoft ", "").replace(" x64", "").replace("10.0.", "Build ");
     }
-
+    
     function formatearAntivirus(textoAV) {
       if (!textoAV || textoAV === "N/D" || textoAV.includes("Sin Antivirus")) {
         return `<div style="margin-top:4px;"><span style="color:var(--red); font-weight:bold;">🔴 Sin Antivirus Registrado</span></div>`;
@@ -437,22 +547,63 @@
         if (av.includes("[Activo]")) {
           const nombre = av.replace(" [Activo]", "");
           return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
-            <span style="color:var(--green); font-weight:bold;">🟢 ${nombre}</span>
-             <span style="background: rgba(16,185,129,0.15); color: var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--green); font-weight: bold;">ACTIVO</span>
+            <span style="color:var(--green); font-weight:bold;">🟢 ${nombre}</span> 
+            <span style="background: rgba(16,185,129,0.15); color: var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--green); font-weight: bold;">ACTIVO</span>
           </div>`;
         } else if (av.includes("[Desactivado]")) {
           const nombre = av.replace(" [Desactivado]", "");
           return `<div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
-            <span style="color:var(--red); font-weight:bold;">🔴 ${nombre}</span>
-             <span style="background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--red); font-weight: bold;">DESACTIVADO</span>
+            <span style="color:var(--red); font-weight:bold;">🔴 ${nombre}</span> 
+            <span style="background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--red); font-weight: bold;">DESACTIVADO</span>
           </div>`;
         } else {
           return `<div style="margin: 4px 0;"><span style="color:var(--subtext);">${av}</span></div>`;
         }
       }).join('');
     }
+    
+    // Devuelve la clave de recuperacion si la hay, y "" si lo que llega es un
+    // estado sin clave. Asi el boton de copiar no ofrece copiar un aviso.
+    function claveBitLocker(textoBL) {
+      if (!textoBL) { return ""; }
+      if (textoBL.startsWith("ON|")) { return textoBL.substring(3); }
+      if (textoBL.indexOf("|") > 0) { return ""; }
+      // "N/D" y el cifrado LUKS de los agentes de Linux no son claves, y hasta
+      // ahora el panel ofrecia copiarlos igual.
+      if (textoBL === "N/D" || textoBL.includes("LUKS")) { return ""; }
+      const t = textoBL.toLowerCase();
+      if (t.includes("no") || t.includes("sin clave") || t.includes("desprotegido") || textoBL.includes("RESTRINGIDO")) { return ""; }
+      return textoBL;
+    }
 
     function formatearBitLocker(textoBL) {
+      // Desde el agente v6.9.28 llega "ESTADO|texto". Los agentes anteriores
+      // mandan solo texto y se siguen entendiendo como antes, que no todos los
+      // equipos se actualizan el mismo dia.
+      const corte = textoBL ? textoBL.indexOf("|") : -1;
+      const estado = corte > 0 ? textoBL.substring(0, corte) : "";
+      const resto = corte > 0 ? textoBL.substring(corte + 1) : "";
+      if (estado === "ON") {
+        return `<span style="color:var(--green); font-weight:bold;">🟢 Cifrado y protegido</span><br><div class="bitlocker-box">${resto}</div>`;
+      }
+      if (estado === "ON_SIN_CLAVE") {
+        return `<span style="color:var(--green); font-weight:bold;">🟢 Cifrado y protegido</span><br><span style="color:var(--subtext); font-size:12px;">${resto}</span>`;
+      }
+      if (estado === "PROGRESO") {
+        return `<span style="color:#f59e0b; font-weight:bold;">🟠 Cifrando</span><br><span style="color:var(--subtext); font-size:12px;">${resto}</span>`;
+      }
+      if (estado === "PENDIENTE_ARRANQUE") {
+        return `<span style="color:#f59e0b; font-weight:bold;">🟠 Pendiente de reiniciar</span><br><span style="color:var(--subtext); font-size:12px;">${resto}</span>`;
+      }
+      if (estado === "SIN_PROTECCION") {
+        return `<span style="color:#f59e0b; font-weight:bold;">🟠 Cifrado, pero sin proteger</span><br><span style="color:var(--subtext); font-size:12px;">${resto}</span>`;
+      }
+      if (estado === "OFF") {
+        return `<span style="color:var(--red); font-weight:bold;">🔴 Desprotegido</span>`;
+      }
+      if (textoBL === "N/D") {
+        return `<span style="color:var(--subtext); font-weight:bold;">⚪ Sin datos todavia</span>`;
+      }
       if (!textoBL || textoBL.toLowerCase().includes("no") || textoBL.toLowerCase().includes("sin clave") || textoBL.toLowerCase().includes("desprotegido")) {
         return `<span style="color:var(--red); font-weight:bold;">🔴 Desprotegido</span>`;
       }
@@ -461,7 +612,7 @@
       }
       return `<span style="color:var(--green); font-weight:bold;">🟢 Cifrado Activo</span><br><div class="bitlocker-box">${textoBL}</div>`;
     }
-
+    
     function renderizarTabla(datos, rol = "ADMIN") {
       const tbody = document.getElementById('tabla-cuerpo');
       tbody.innerHTML = "";
@@ -484,7 +635,7 @@
         let uptimeColor = "var(--subtext)";
         let uptimeIcon = "⏱️";
         let alertBg = "";
-
+        
         const daysMatch = uptimeText.match(/(\d+)\s*días/);
         if (daysMatch) {
           const days = parseInt(daysMatch[1]);
@@ -498,7 +649,7 @@
         }
         
         let formattedUptime = alertBg ? `<div style="${alertBg}"><span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span></div>` : `<span style="color:${uptimeColor}; font-weight:bold;">${uptimeText}</span>`;
-
+        
         const tr = document.createElement('tr');
         tr.className = "main-row";
         tr.onclick = () => toggleDetalle(index);
@@ -514,7 +665,7 @@
             ${esAdmin ? `<button onclick="event.stopPropagation(); borrarEquipo('${item.hostname}')" style="background: none; border: none; cursor: pointer; opacity: 0.3; font-size: 1.1em; margin-left: 10px; transition: opacity 0.2s;" title="Eliminar equipo del panel" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.3'">🗑️</button>` : ''}
           </td>
         `;
-
+        
         const trDetail = document.createElement('tr');
         trDetail.id = `detail-${index}`;
         trDetail.className = "detail-row";
@@ -524,9 +675,9 @@
           const btnBorrar = esAdmin ? `<span style="cursor:pointer; margin-left:8px; opacity:0.8;" onclick="event.stopPropagation(); desinstalarProgramaDirecto('${item.hostname}', '${appLimpia}')" title="Desinstalar software de forma remota">🗑️</span>` : '';
           return `<li style="display:flex; justify-content:space-between; align-items:center; padding: 2px 0;"><span>• ${s}</span>${btnBorrar}</li>`;
         }).join('') : '<li>Sin datos de software</li>';
-
+        
         let kbHtml = kbList.length > 0 ? kbList.map(k => `<li>🔧 ${k}</li>`).join('') : '<li>Sin parches registrados</li>';
-
+        
         trDetail.innerHTML = `
           <td colspan="6">
             <div class="detail-grid">
@@ -544,7 +695,7 @@
                 ${formatearAntivirus(item.antivirus)}
                 <p style="margin-top:12px;"><b>Estado BitLocker:</b></p>
                 ${formatearBitLocker(item.bitlocker)}
-                ${(esAdmin && item.bitlocker && !item.bitlocker.toLowerCase().includes("no") && !item.bitlocker.toLowerCase().includes("desprotegido") && !item.bitlocker.includes("RESTRINGIDO")) ? `<button class="btn-copy" onclick="copiarClave('${item.bitlocker}')">📋 Copiar Clave</button>` : ''}
+                ${(esAdmin && claveBitLocker(item.bitlocker)) ? `<button class="btn-copy" onclick="copiarClave('${claveBitLocker(item.bitlocker)}')">📋 Copiar Clave</button>` : ''}
                 <p style="margin-top:12px;"><b>KBs / Actualizaciones:</b></p>
                 <ul class="kb-list">${kbHtml}</ul>
               </div>
@@ -560,24 +711,24 @@
       });
       filtrarComandosPorSO();
     }
-
+    
     function toggleDetalle(index) {
       const detailRow = document.getElementById(`detail-${index}`);
       const btn = document.getElementById(`btn-exp-${index}`);
       if (detailRow.style.display === "table-row") {
-         detailRow.style.display = "none"; 
+         detailRow.style.display = "none";
          btn.innerHTML = "▼ Ficha";
       } else {
-         detailRow.style.display = "table-row"; 
+         detailRow.style.display = "table-row";
          btn.innerHTML = "▲ Ficha";
       }
     }
-
-    function copiarClave(texto) { 
-      navigator.clipboard.writeText(texto); 
-      alert("📋 Clave BitLocker copiada al portapapeles"); 
+    
+    function copiarClave(texto) {
+       navigator.clipboard.writeText(texto);
+       alert("📋 Clave BitLocker copiada al portapapeles");
     }
-
+    
     function filtrarTabla() {
       const texto = document.getElementById('buscador').value.toLowerCase();
       const filtrados = datosInventarioGlobal.filter(i =>
@@ -587,28 +738,30 @@
         (i.ip_local && i.ip_local.toLowerCase().includes(texto)) ||
         (i.ip_publica && i.ip_publica.toLowerCase().includes(texto))
       );
-      renderizarTabla(filtrados);
+      const badge = document.querySelector('.badge-sysadmin');
+      const rolActual = (badge && badge.innerText.includes('ADMIN')) ? "ADMIN" : "GUEST";
+      renderizarTabla(filtrados, rolActual);
     }
-
+    
     function toggleTodosCbs(maestro) {
       document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = maestro.checked);
       filtrarComandosPorSO();
     }
-
+    
     function filtrarComandosPorSO() {
       const seleccionados = document.querySelectorAll('.cb-equipo:checked');
       const select = document.getElementById('sel-global');
       if (!select) return;
       const opciones = select.querySelectorAll('option');
-
+      
       if (seleccionados.length === 0) {
         opciones.forEach(opt => opt.style.display = 'block');
         return;
       }
-
+      
       let tieneWindows = false;
       let tieneLinux = false;
-
+      
       seleccionados.forEach(cb => {
         const os = (cb.getAttribute('data-os') || '').toLowerCase();
         if (os.includes('linux') || os.includes('ubuntu') || os.includes('wsl')) {
@@ -617,7 +770,7 @@
           tieneWindows = true;
         }
       });
-
+      
       opciones.forEach(opt => {
         const targetOS = opt.getAttribute('data-os');
         if (!targetOS || targetOS === 'universal') {
@@ -632,16 +785,16 @@
           opt.style.display = 'none';
         }
       });
-
+      
       if (select.selectedOptions.length > 0 && select.selectedOptions[0].style.display === 'none') {
         select.value = '';
       }
     }
-
+    
     function pedirParametroAccion(accion) {
       switch (accion) {
         case "SEND_MESSAGE": return prompt("💬 Escribe el mensaje que se mostrará en pantalla al usuario:");
-        case "CREATE_IT_USER": return prompt("👤 Escribe el nombre del nuevo usuario local:");
+        case "DESTROY_IT_USER": return prompt("🗑️ Escribe el nombre EXACTO de la cuenta local que se va a eliminar:", "AdminIT_Temp");
         case "REVOKE_ADMIN": return prompt("🚫 Escribe el usuario al que quitarás permisos de Administrador/Sudo:");
         case "INSTALL_SW": return prompt("📦 Escribe el ID/Nombre del paquete o app (Winget / APT):");
         case "UNINSTALL_SW": return prompt("🗑️ Escribe el nombre del programa/paquete a desinstalar:");
@@ -649,7 +802,7 @@
         default: return "";
       }
     }
-
+    
     function abrirModalScript(seleccionados) {
       equiposSeleccionadosParaScript = seleccionados;
       const combo = document.getElementById("sel-script-disponible");
@@ -657,17 +810,17 @@
       if (listaScriptsDisponibles.length === 0) {
         combo.innerHTML = `<option value="">⛔ No hay scripts .ps1 subidos</option>`;
       } else {
-        listaScriptsDisponibles.forEach(script => { 
-          combo.innerHTML += `<option value="${script}">📄 ${script}</option>`; 
-        });
+        listaScriptsDisponibles.forEach(script => {
+           combo.innerHTML += `<option value="${script}">📄 ${script}</option>`;
+         });
       }
       document.getElementById("modal-script").style.display = "block";
     }
-
-    function cerrarModalScript() { 
-      document.getElementById("modal-script").style.display = "none"; 
+    
+    function cerrarModalScript() {
+       document.getElementById("modal-script").style.display = "none";
     }
-
+    
     function confirmarEjecucionScript() {
       const scriptElegido = document.getElementById("sel-script-disponible").value;
       if (!scriptElegido) return alert("⚠️ No hay ningún script seleccionado");
@@ -691,17 +844,17 @@
       document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = false);
       filtrarComandosPorSO();
     }
-
+    
     async function enviarComandoLote() {
       let seleccionados = Array.from(document.querySelectorAll('.cb-equipo:checked')).map(cb => cb.value);
       if (seleccionados.length === 0) return alert("⚠️ Selecciona al menos un equipo de la lista");
-
+      
       let accion = document.getElementById("sel-global").value;
       if (!accion) return alert("⚠️ Selecciona una acción del menú desplegable");
       if (accion === "CUSTOM_PS1") { abrirModalScript(seleccionados); return; }
-
+      
       let param = "";
-
+      
       // Flujo dinámico de JIT y creación de cuentas
       if (accion === "CREATE_TEMP_RDP") {
           const user = prompt("👥 Nombre del usuario temporal:");
@@ -711,6 +864,19 @@
           const horas = prompt("⏱️ ¿Cuántas horas de validez tendrá la cuenta?", "4");
           if (!horas) return;
           param = `${user}||${pass}||${horas}`;
+      } else if (accion === "CREATE_IT_USER") {
+          const user = prompt("👤 Nombre de la cuenta local que se va a crear:", "AdminIT_Temp");
+          if (!user) return;
+          if (!/^[A-Za-z0-9._-]{1,20}$/.test(user)) return alert("⛔ Nombre no válido. Solo letras, números, punto, guion y guion bajo, hasta 20 caracteres.");
+          const pass = prompt(`🔑 Contraseña para '${user}' (mínimo 12 caracteres):`);
+          if (!pass) return;
+          if (pass.length < 12) return alert("⛔ La contraseña debe tener al menos 12 caracteres.");
+          if (pass.includes("||")) return alert("⛔ La contraseña no puede contener dos barras verticales seguidas: es el separador que usa la orden.");
+          const horas = prompt("⏱️ ¿Cuántas horas durará la cuenta? (0 = no caduca)", "8");
+          if (horas === null) return;
+          if (!/^\d+([.,]\d+)?$/.test(horas)) return alert("⛔ Escribe un número de horas. Pon 0 si la cuenta no debe caducar.");
+          if (parseFloat(horas.replace(",", ".")) > 8760) return alert("⛔ Como mucho 8760 horas, que es un año.");
+          param = `${user}||${pass}||${horas}`;
       } else if (accion === "TEMP_ADMIN") {
           const user = prompt("🛡️ Escribe el nombre del usuario que recibirá privilegios de Administrador:");
           if (!user) return;
@@ -718,71 +884,120 @@
           if (!horas) return;
           param = `${user}||${horas}`;
       } else {
-          const accionesConParametro = ["SEND_MESSAGE", "CREATE_IT_USER", "QUICK_ASSIST", "REVOKE_ADMIN", "INSTALL_SW", "UNINSTALL_SW"];
+          const accionesConParametro = ["SEND_MESSAGE", "DESTROY_IT_USER", "QUICK_ASSIST", "REVOKE_ADMIN", "INSTALL_SW", "UNINSTALL_SW"];
           if (accionesConParametro.includes(accion)) {
             param = pedirParametroAccion(accion);
             if (param === null || param.trim() === "") return alert("⚠️ Operación cancelada. El parámetro es obligatorio.");
           }
       }
+      
+      const nombreHumano = NOMBRES_ACCIONES[accion] || accion;
 
       if (accion === "WIPE") {
-        if (!confirm("⚠️ ¡ATENCIÓN! Vas a solicitar el BORRADO REMOTO (WIPE) de los equipos seleccionados. ¿Confirmas esta acción crítica?")) return;
-      }
-
-      const nombreHumano = NOMBRES_ACCIONES[accion] || accion;
-      const confirmacion = confirm(`🚀 Vas a enviar la orden [ ${nombreHumano} ] a ${seleccionados.length} equipos.\n\n¿Deseas continuar?`);
-      if (!confirmacion) return;
-
-      // Bucle de envío masivo sin interrupciones
-      let exitos = 0;
-      let fallos = 0;
-
+        const palabra = prompt("⚠️ ¡PELIGRO CRÍTICO - ACCIÓN IRREVERSIBLE!\n\nWindows: formateo de fábrica.\nLinux: se borran las claves LUKS y el disco queda ilegible para siempre, sin recuperación posible.\n\nEscribe DESTRUIR para borrar.\nEscribe SIMULAR (solo equipos Linux) para que informen de lo que encontrarían sin borrar nada:");
+        if (palabra === "SIMULAR") {
+            // SIMULAR solo lo entiende el agente de Linux. El de Windows ignora
+            // el parametro y formatearia de verdad, asi que aqui se corta antes.
+            const hayNoLinux = Array.from(document.querySelectorAll('.cb-equipo:checked')).some(cb => {
+              const os = (cb.getAttribute('data-os') || '').toLowerCase();
+              return !(os.includes('linux') || os.includes('ubuntu') || os.includes('wsl'));
+            });
+            if (hayNoLinux) {
+              alert("⛔ SIMULAR solo vale para equipos Linux. Deja solo Linux en la selección.");
+              return;
+            }
+            param = "simular";
+        } else if (palabra !== "DESTRUIR") {
+            alert("⛔ Operación cancelada por seguridad.");
+            return;
+        }
+      } else {
+        const confirmacion = confirm(`🚀 Vas a enviar la orden [ ${nombreHumano} ] a ${seleccionados.length} equipos.\n\n¿Deseas continuar?`);
+        if (!confirmacion) return;
+      } 
+      // Bucle de envio masivo: corta en cuanto la sesion deja de valer
+      let exitos = 0, fallos = 0, ultimoError = "", denegado = false;
+ 
       for (const hostname of seleccionados) {
           try {
               const res = await fetch(API_URL + "/queue_command", {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname, comando: accion, parametro: param })
+                  body: JSON.stringify({ token: tokenSesionGoogle, hostname: hostname,
+                                         comando: accion, parametro: param })
               });
               const data = await res.json().catch(() => ({}));
-              if (res.ok) { exitos++; } else { fallos++; }
-          } catch (error) { fallos++; }
+              if (res.ok) {
+                  exitos++;
+              } else {
+                  fallos++;
+                  ultimoError = data.msg || ("HTTP " + res.status);
+                  if (res.status === 403) { denegado = true; break; }
+              }
+          } catch (error) {
+              fallos++;
+              ultimoError = error.message;
+          }
       }
-
-      alert(`✅ Lote finalizado.\n\n✔️ Enviados con éxito: ${exitos}\n❌ Errores: ${fallos}`);
+ 
+      if (denegado) { sesionCaducada(); return; }
+ 
+      alert("Lote finalizado.\n\nEnviados con exito: " + exitos +
+            "\nErrores: " + fallos +
+            (ultimoError ? "\n\nMotivo del ultimo fallo: " + ultimoError : ""));
       document.getElementById("sel-global").value = "";
       document.querySelectorAll('.cb-equipo').forEach(cb => cb.checked = false);
       filtrarComandosPorSO();
     }
-
+    
     function copiarComandoWindows() {
-      const comando = `curl.exe -k https://gmdm.gigas.com:8443/deploy -o $env:TEMP\\inst.ps1; Set-ExecutionPolicy Bypass -Scope Process -Force; & $env:TEMP\\inst.ps1`;
-      copiarAlPortapapeles(comando, "¡Comando Windows copiado!\n\nAbre PowerShell como Administrador en el PC y pégalo.");
+      // /deploy esta cerrado desde el parche 11. Sin credencial devuelve 403 y
+      // lo que se guardaba en inst.ps1 era el JSON del error, que PowerShell
+      // intentaba ejecutar. Se manda la sesion del panel, que es lo que acepta
+      // _autorizado_para_agente ademas de la cabecera del agente, y se mira el
+      // tamano del fichero antes de lanzarlo.
+      const url = `${API_URL}/deploy?token=${tokenSesionGoogle}`;
+      const comando =
+        `$f = "$env:TEMP\\inst.ps1"; curl.exe -k -o $f "${url}"; ` +
+        `if ((Get-Item $f -ErrorAction SilentlyContinue).Length -lt 1000) ` +
+        `{ Write-Host "ERROR: el servidor no ha entregado el agente. Vuelve al panel, recarga con Ctrl+F5 y copia el comando otra vez." -ForegroundColor Red } ` +
+        `else { Set-ExecutionPolicy Bypass -Scope Process -Force; & $f }`;
+      copiarAlPortapapeles(comando, "¡Comando Windows copiado!\n\nAbre PowerShell como Administrador en el PC y pégalo.\n\nLleva dentro tu sesión del panel: caduca a las 8 horas y solo sirve para descargar el agente.");
     }
-
+    
     function copiarComandoLinux() {
-      const comando = `curl -s -k https://gmdm.gigas.com:8443/deploy_linux | sudo bash`;
-      copiarAlPortapapeles(comando, "¡Comando Linux copiado!\n\nAbre la terminal del servidor Ubuntu/Debian y pégalo.");
+      // Mismo caso que el de Windows. Aqui ademas se deja de canalizar la
+      // descarga directamente a bash: baja a un fichero, se comprueba que
+      // empieza por el shebang del instalador y solo entonces se ejecuta. Con
+      // el pipe, un 403 acababa pasandole el JSON del error a una shell con
+      // sudo.
+      const url = `${API_URL}/deploy_linux?token=${tokenSesionGoogle}`;
+      const comando =
+        `curl -sk "${url}" -o /tmp/inst-gmdm.sh; ` +
+        `if head -1 /tmp/inst-gmdm.sh 2>/dev/null | grep -q '^#!/bin/bash'; ` +
+        `then sudo bash /tmp/inst-gmdm.sh; ` +
+        `else echo "ERROR: el servidor no ha entregado el instalador. Vuelve al panel, recarga con Ctrl+F5 y copia el comando otra vez."; fi`;
+      copiarAlPortapapeles(comando, "¡Comando Linux copiado!\n\nAbre la terminal del equipo Ubuntu/Debian y pégalo.\n\nLleva dentro tu sesión del panel: caduca a las 8 horas y solo sirve para descargar el agente.");
     }
-
+    
     function copiarAlPortapapeles(texto, mensajeExito) {
       const areaTexto = document.createElement("textarea");
-      areaTexto.value = texto; 
-      areaTexto.style.position = "fixed"; 
+      areaTexto.value = texto;
+      areaTexto.style.position = "fixed";
       areaTexto.style.opacity = "0";
-      document.body.appendChild(areaTexto); 
+      document.body.appendChild(areaTexto);
       areaTexto.select();
       
       try {
         if (document.execCommand("copy")) alert(mensajeExito);
-      } catch (err) { 
-        prompt("Copia manualmente:", texto); 
+      } catch (err) {
+         prompt("Copia manualmente:", texto);
       }
-      finally { 
-        document.body.removeChild(areaTexto); 
+      finally {
+         document.body.removeChild(areaTexto);
       }
     }
-
+    
     function obtenerEstadoConexion(fechaUltimaConn) {
       if (!fechaUltimaConn) return { dot: 'dot-offline', text: '🔴 Desconectado', color: 'var(--red)' };
       const fechaAgente = new Date(fechaUltimaConn.replace(' ', 'T'));
@@ -791,7 +1006,7 @@
       if (diffMinutos > 10) { return { dot: 'dot-offline', text: '🔴 Apagado', color: 'var(--red)' }; }
       return { dot: 'dot-online', text: '🟢 Conectado', color: 'var(--green)' };
     }
-
+    
     function cargarHistorialAuditoria() {
       const tbodyAuditoria = document.getElementById('tabla-auditoria-cuerpo');
       tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b5cf6;">Consultando registro inmutable...</td></tr>`;
@@ -823,11 +1038,11 @@
             tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center;">No hay registros de auditoría disponibles.</td></tr>`;
           }
         })
-        .catch(err => { 
-          tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--red); font-weight: bold;">⛔ ${err.message}</td></tr>`; 
+        .catch(err => {
+           tbodyAuditoria.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--red); font-weight: bold;">⛔ ${err.message}</td></tr>`;
         });
     }
-
+    
     function filtrarLogs() {
       var input = document.getElementById("filtroEquipo");
       if (!input) return;
@@ -840,15 +1055,15 @@
         var td = tr[i].getElementsByTagName("td")[3];
         if (td) {
           var txtValue = td.textContent || td.innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) { 
-            tr[i].style.display = ""; 
-          } else { 
-            tr[i].style.display = "none"; 
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+             tr[i].style.display = "";
+          } else {
+             tr[i].style.display = "none";
           }
         }
       }
     }
-
+    
     function subirScripts() {
       const input = document.getElementById('input-scripts');
       if (input.files.length === 0) return alert("⚠️ Selecciona al menos un archivo .ps1");
@@ -857,8 +1072,8 @@
       formData.append("token", tokenSesionGoogle);
       
       for (let i = 0; i < input.files.length; i++) {
-        if (!input.files[i].name.toLowerCase().endsWith('.ps1')) { 
-          return alert("⛔ OPERACIÓN ABORTADA: Solo se permiten archivos con extensión .ps1"); 
+        if (!input.files[i].name.toLowerCase().endsWith('.ps1')) {
+           return alert("⛔ OPERACIÓN ABORTADA: Solo se permiten archivos con extensión .ps1");
         }
         formData.append("scripts", input.files[i]);
       }
@@ -867,18 +1082,18 @@
         .then(res => res.json().catch(() => ({})))
         .then(data => {
           if (data.status === "ok") {
-            alert(`✅ Éxito: ${data.msg}`); 
+            alert(`✅ Éxito: ${data.msg}`);
             input.value = "";
             fetch(`${API_URL}/get_scripts?token=${tokenSesionGoogle}`)
               .then(r => r.json())
               .then(d => { if (d.status === "ok") listaScriptsDisponibles = d.scripts; });
-          } else { 
-            alert(`⛔ Error: ${data.msg || "Error al subir archivos"}`); 
+          } else {
+             alert(`⛔ Error: ${data.msg || "Error al subir archivos"}`);
           }
         })
         .catch(err => alert(`⛔ Error de conexión: ${err.message}`));
     }
-
+    
     function desinstalarProgramaDirecto(hostname, nombreApp) {
       if (!confirm(`⚠️ ¿Confirmas que deseas solicitar la desinstalación remota (silenciosa) de "${nombreApp}" en el equipo ${hostname}?`)) return;
       
@@ -895,7 +1110,7 @@
       .then(data => alert(`✅ Orden 'Desinstalación de Software' (${nombreApp}) encolada correctamente para ${hostname}`))
       .catch(err => alert(`⛔ OPERACIÓN DENEGADA:\n\n${err.message}`));
     }
-
+    
     async function borrarEquipo(hostname) {
         if (!confirm(`¿Seguro que deseas eliminar el equipo ${hostname} del panel?\n\n(Esto solo limpia su registro visual. Si la máquina sigue encendida y con el agente instalado, volverá a aparecer en un plazo de 5 minutos).`)) {
             return;
@@ -917,49 +1132,257 @@
         }
     }
 
-    let ordenActual = { columna: -1, asc: true };
+    // --- NUEVAS FUNCIONES DE GESTIÓN DE PARCHES ---
+    function abrirModalParches() {
+        document.getElementById('modal-parches').style.display = 'block';
+        document.getElementById('panel-analisis').style.display = 'none';
+        cargarParchesPendientes();
+    }
 
+    function cerrarModalParches() {
+        document.getElementById('modal-parches').style.display = 'none';
+    }
+
+    // Parche 26: lo que llega del equipo (titulo, KB, nombres) se escapa.
+    function escaparHtmlParche(texto) {
+        return String(texto == null ? '' : texto)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+ 
+    function cargarParchesPendientes() {
+        const tbody = document.getElementById('tabla-parches-cuerpo');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Buscando KBs pendientes en la flota...</td></tr>';
+        
+        fetch(`${API_URL}/api/patches/pending?token=${tokenSesionGoogle}`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === "ok" && res.data.length > 0) {
+                tbody.innerHTML = "";
+                res.data.forEach(p => {
+                    const equiposJson = JSON.stringify(p.equipos).replace(/"/g, '&quot;');
+                    const textoEquipos = p.total === 1 ? '1 equipo' : `${p.total} equipos`;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><span style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; padding: 2px 6px; border-radius: 4px; border: 1px solid #38bdf8; white-space: nowrap;">${escaparHtmlParche(p.kb)}</span></td>
+                            <td>${escaparHtmlParche(p.descripcion)}<br>${insigniaEstado(p.estado || 'PENDIENTE', p.revision_vencida)}</td>
+			    <td><b>${textoEquipos}</b><br><span style="font-size:10px; color:var(--subtext);">${escaparHtmlParche(p.equipos.join(', '))}</span></td>
+                            <td><button style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;" onclick="analizarParche('${p.kb}', '${equiposJson}')">Revisar</button></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--green);">Todos los equipos están actualizados. No hay parches pendientes.</td></tr>';
+            }
+        }).catch(() => {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--red);">Error al cargar los parches.</td></tr>';
+        });
+    }
+
+    // --- GOBIERNO DE PARCHES (seccion 9) ---
+    // Aqui habia una llamada a una ruta que preguntaba a un modelo de lenguaje
+    // sin acceso a internet, con una clave de marcador de posicion. Nunca
+    // funciono: lo que salia por pantalla como "Recomendacion" era el
+    // KeyError de Python al no encontrar 'candidates' en la respuesta. Y las
+    // lineas de "Reporte Oficial" y "Comunidad" estaban escritas a mano aqui
+    // mismo, asi que aparecian aunque no se hubiera consultado nada.
+    //
+    // Ahora el panel no opina. Trae los enlaces, guarda tu decision firmada y
+    // te avisa cuando una cuarentena cumple el plazo.
+
+    let estadoKbActual = "PENDIENTE";
+
+    const COLOR_ESTADO = {
+        "PENDIENTE":  { color: "#94a3b8", texto: "Sin decidir" },
+        "APROBADO":   { color: "#22c55e", texto: "Aprobado" },
+        "CUARENTENA": { color: "#f59e0b", texto: "En cuarentena" },
+        "BLOQUEADO":  { color: "#ef4444", texto: "Bloqueado" }
+    };
+
+    function insigniaEstado(estado, vencida) {
+        const e = COLOR_ESTADO[estado] || COLOR_ESTADO["PENDIENTE"];
+        const aviso = vencida ? " · toca revisarlo" : "";
+        return `<span style="background: ${e.color}22; color: ${e.color}; border: 1px solid ${e.color}; padding: 1px 6px; border-radius: 4px; font-size: 11px; white-space: nowrap;">${e.texto}${aviso}</span>`;
+    }
+
+    async function analizarParche(kb, equiposJson) {
+        kbActualAnalizando = kb;
+        equiposAfectadosActuales = JSON.parse(equiposJson);
+
+        document.getElementById('panel-analisis').style.display = 'block';
+        document.getElementById('loader-parche').style.display = 'block';
+        document.getElementById('resultado-analisis').style.display = 'none';
+
+        try {
+            const respuesta = await fetch(`${API_URL}/api/kb/info?token=${tokenSesionGoogle}&kb=${encodeURIComponent(kb)}`);
+            const res = await respuesta.json();
+
+            document.getElementById('loader-parche').style.display = 'none';
+            document.getElementById('resultado-analisis').style.display = 'block';
+
+            if (!respuesta.ok || res.status !== "ok") {
+                pintarFichaKb(kb, null, null, res.msg || `El servidor ha respondido ${respuesta.status}.`);
+                return;
+            }
+            pintarFichaKb(kb, res.enlaces, res.estado, null);
+        } catch (error) {
+            document.getElementById('loader-parche').style.display = 'none';
+            document.getElementById('resultado-analisis').style.display = 'block';
+            pintarFichaKb(kb, null, null, "No se ha podido contactar con el servidor.");
+        }
+        // Parche 27: la ficha se abre debajo de la tabla; se lleva la vista hasta ella.
+        document.getElementById('panel-analisis').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function pintarFichaKb(kb, enlaces, estado, error) {
+        const cajaEnlaces = document.getElementById('enlaces-kb');
+        const cajaDecision = document.getElementById('txt-recomendacion');
+        const btn = document.getElementById('btn-instalar');
+
+        // En caso de error se limpia todo. Antes quedaban a la vista los datos
+        // del parche anterior, que es peor que no enseñar nada.
+        if (error) {
+            estadoKbActual = "PENDIENTE";
+            document.getElementById('titulo-riesgo').innerHTML = `<span style="color: var(--red);">${kb} — no se ha podido cargar</span>`;
+            cajaEnlaces.innerHTML = '<span style="font-size: 12px; color: var(--subtext);">Sin datos.</span>';
+            cajaDecision.innerText = error;
+            document.getElementById('motivo-kb').value = "";
+            btn.disabled = true;
+            btn.style.opacity = "0.4";
+            btn.style.cursor = "not-allowed";
+            return;
+        }
+
+        estadoKbActual = estado.estado;
+
+        document.getElementById('titulo-riesgo').innerHTML =
+            `<span style="color: #e2e8f0;">${kb}</span> &nbsp; ${insigniaEstado(estado.estado, estado.revision_vencida)}`;
+
+        const etiquetas = {
+            microsoft: "Página de la KB en Microsoft",
+            catalogo: "Catálogo de Windows Update",
+            sysadmin: "r/sysadmin",
+            buscador: "Incidencias (últimos 6 meses)"
+        };
+        cajaEnlaces.innerHTML = Object.keys(etiquetas)
+            .filter(k => enlaces && enlaces[k])
+            .map(k => `<a href="${enlaces[k]}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: #38bdf8; text-decoration: none; border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px;">${etiquetas[k]} ↗</a>`)
+            .join('');
+
+        let texto = "Nadie ha decidido todavía sobre este parche.";
+        if (estado.estado !== "PENDIENTE") {
+            texto = `${COLOR_ESTADO[estado.estado].texto} por ${estado.decidido_por || 'desconocido'}`;
+            if (estado.fecha_decision) texto += ` el ${estado.fecha_decision}`;
+            if (estado.motivo) texto += `. Motivo: ${estado.motivo}`;
+            if (estado.revisar_el) {
+                texto += estado.revision_vencida
+                    ? `. El plazo venció el ${estado.revisar_el}: toca volver a mirarlo.`
+                    : `. Revisión prevista el ${estado.revisar_el}.`;
+            }
+        }
+        cajaDecision.innerText = texto;
+        document.getElementById('motivo-kb').value = estado.motivo || "";
+
+        const puede = (estado.estado === "APROBADO");
+        btn.disabled = !puede;
+        btn.style.opacity = puede ? "1" : "0.4";
+        btn.style.cursor = puede ? "pointer" : "not-allowed";
+    }
+
+    async function guardarEstadoKb(estado) {
+        const motivo = document.getElementById('motivo-kb').value.trim();
+        if ((estado === "CUARENTENA" || estado === "BLOQUEADO") && !motivo) {
+            alert("Escribe el motivo antes de continuar. Dentro de tres meses nadie se acordará de por qué se paró este parche.");
+            document.getElementById('motivo-kb').focus();
+            return;
+        }
+        const dias = parseInt(document.getElementById('dias-cuarentena').value, 10) || 7;
+
+        try {
+            const respuesta = await fetch(API_URL + "/api/kb/estado", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: tokenSesionGoogle,
+                    kb: kbActualAnalizando,
+                    estado: estado,
+                    motivo: motivo,
+                    dias: dias
+                })
+            });
+            const res = await respuesta.json();
+            if (!respuesta.ok || res.status !== "ok") {
+                alert("No se ha podido guardar: " + (res.msg || respuesta.status));
+                return;
+            }
+            await analizarParche(kbActualAnalizando, JSON.stringify(equiposAfectadosActuales));
+            cargarParchesPendientes();
+        } catch (e) {
+            alert("No se ha podido contactar con el servidor.");
+        }
+    }
+
+    async function aprobarParche() {
+        if (estadoKbActual !== "APROBADO") {
+            alert("Antes de instalar hay que aprobar el parche, para que quede constancia de quién lo aprueba.");
+            return;
+        }
+
+        if(!confirm(`¿Deseas enviar la orden de instalación del parche ${kbActualAnalizando} a los ${equiposAfectadosActuales.length} equipos afectados?`)) return;
+        
+        let exitos = 0;
+        for (const host of equiposAfectadosActuales) {
+            try {
+                await fetch(API_URL + "/queue_command", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tokenSesionGoogle, hostname: host, comando: "OS_PATCHES", parametro: kbActualAnalizando })
+                });
+                exitos++;
+            } catch(e) {}
+        }
+        alert(`✅ Orden enviada a ${exitos} equipos. Se instalará en segundo plano.`);
+        cerrarModalParches();
+    }
+
+    // --- ORDENACIÓN DE TABLA ---
+    let ordenActual = { columna: -1, asc: true };
     function sortTable(n) {
       console.log("Clic detectado en la columna número:", n);
-      
       const campos = {
         1: 'hostname',
         2: 'usuario',
         3: 'os',
         4: 'fecha_insercion'
       };
-      
       const campo = campos[n];
-      
       if (!campo) {
         console.log("⚠️ Error: No hay un campo mapeado para la columna", n);
         return;
       }
-      
       if (typeof datosInventarioGlobal === 'undefined' || !datosInventarioGlobal) {
         console.log("⚠️ Error: La variable datosInventarioGlobal está vacía o no existe.");
         return;
       }
-
+      
       if (ordenActual.columna === n) {
         ordenActual.asc = !ordenActual.asc;
       } else {
         ordenActual.columna = n;
         ordenActual.asc = true;
       }
-
+      
       datosInventarioGlobal.sort((a, b) => {
         let valA = (a[campo] || "").toString().toLowerCase();
         let valB = (b[campo] || "").toString().toLowerCase();
-
+        
         if (valA < valB) return ordenActual.asc ? -1 : 1;
         if (valA > valB) return ordenActual.asc ? 1 : -1;
         return 0;
       });
-
+      
       const badge = document.querySelector('.badge-sysadmin');
       const rolActual = (badge && badge.innerText.includes('ADMIN')) ? "ADMIN" : "GUEST";
-      
       renderizarTabla(datosInventarioGlobal, rolActual);
       console.log("✅ Tabla ordenada por", campo, "y redibujada con éxito.");
     }
